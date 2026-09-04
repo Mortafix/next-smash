@@ -56,6 +56,17 @@ test("filtra l’elenco e salva una ricerca nel browser", async ({ page }) => {
   });
   expect(parseFloat(openToggleRadii.topLeft)).toBeGreaterThan(0);
   expect(openToggleRadii.bottomLeft).toBe("0px");
+
+  const dateFrom = filters.getByLabel("Dal", { exact: true });
+  await expect(dateFrom).toHaveAttribute("type", "text");
+  await expect(dateFrom).toHaveAttribute("placeholder", "gg/mm/aaaa");
+  await dateFrom.fill("05092026");
+  await dateFrom.press("Tab");
+  await expect(dateFrom).toHaveValue("05/09/2026");
+  await dateFrom.fill("");
+  await dateFrom.press("Tab");
+  await expect(dateFrom).toHaveValue("");
+
   await expect(filters.getByLabel("Provincia")).toHaveCount(0);
   await expect(
     filters.getByRole("heading", { level: 3, name: "Categoria" }),

@@ -17,6 +17,7 @@ import Link from "next/link";
 import { type Dispatch, type SetStateAction, useId, useState } from "react";
 
 import { LocationControl } from "@/components/tournaments/location-control";
+import { ItalianDateInput } from "@/components/tournaments/italian-date-input";
 import type { CurrentPositionController } from "@/components/tournaments/use-current-position";
 import { usePreferencesStore } from "@/hooks/use-preferences-store";
 import {
@@ -225,26 +226,18 @@ export function FilterPanel({
               </label>
 
               <div className="ns-field-grid ns-field-grid--dates">
-                <label className="ns-field">
-                  <span className="ns-field-label">Dal</span>
-                  <input
-                    className="ns-input"
-                    type="date"
-                    value={filters.dateFrom}
-                    max={filters.dateTo || undefined}
-                    onChange={(event) => patch({ dateFrom: event.target.value })}
-                  />
-                </label>
-                <label className="ns-field">
-                  <span className="ns-field-label">Al</span>
-                  <input
-                    className="ns-input"
-                    type="date"
-                    value={filters.dateTo}
-                    min={filters.dateFrom || undefined}
-                    onChange={(event) => patch({ dateTo: event.target.value })}
-                  />
-                </label>
+                <ItalianDateInput
+                  label="Dal"
+                  value={filters.dateFrom}
+                  max={filters.dateTo || undefined}
+                  onChange={(dateFrom) => patch({ dateFrom })}
+                />
+                <ItalianDateInput
+                  label="Al"
+                  value={filters.dateTo}
+                  min={filters.dateFrom || undefined}
+                  onChange={(dateTo) => patch({ dateTo })}
+                />
               </div>
             </fieldset>
 
