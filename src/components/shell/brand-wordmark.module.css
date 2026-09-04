@@ -1,0 +1,64 @@
+.root {
+  display: inline-flex;
+  width: max-content;
+  max-width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  color: var(--ns-surface);
+  font-family: var(--ns-font-display);
+  font-weight: var(--ns-font-display-weight);
+  text-transform: uppercase;
+}
+
+.nameRow {
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+  font-size: clamp(2rem, 9vw, 2.72rem);
+  letter-spacing: -0.03em;
+  line-height: 0.8;
+  transform: skewX(-6deg);
+}
+
+.next {
+  color: var(--ns-surface);
+  transition: color var(--ns-motion-fast) var(--ns-ease-out);
+}
+
+.smash {
+  color: var(--ns-ball);
+  transition: color var(--ns-motion-fast) var(--ns-ease-out);
+}
+
+.slash {
+  width: 0.18em;
+  height: 0.9em;
+  flex: 0 0 auto;
+  margin-inline: 0.13em 0.1em;
+  background: var(--ns-ball);
+  box-shadow: 0.08em 0 var(--ns-ink);
+  transform: skewX(-13deg);
+  transition:
+    background-color var(--ns-motion-fast) var(--ns-ease-out),
+    transform var(--ns-motion-fast) var(--ns-ease-out);
+}
+
+.tagline {
+  margin-top: 0.45rem;
+  margin-left: 0.1rem;
+  color: var(--ns-surface);
+  font-size: clamp(0.6875rem, 2.75vw, 0.75rem);
+  letter-spacing: 0.12em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+:global(.brand-link:hover) .next,
+:global(.brand-link:hover) .smash {
+  color: var(--ns-ball-soft);
+}
+
+:global(.brand-link:hover) .slash {
+  background: var(--ns-ball-soft);
+  transform: translateY(-0.04em) skewX(-13deg);
+}

@@ -89,7 +89,7 @@ describe("coordinator della sincronizzazione tornei", () => {
     expect(claim.status).toBe("started");
     if (claim.status !== "started") throw new Error("Claim non acquisito");
 
-    expect(getTournamentSyncRun(claim.runId)).toEqual({
+    expect(getTournamentSyncRun(claim.runId, now)).toEqual({
       runId: claim.runId,
       status: "running",
       startedAt: now.toISOString(),

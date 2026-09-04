@@ -5,12 +5,13 @@ import {
   getTournamentById,
   getTournamentSnapshot,
 } from "@/lib/tournaments/repository";
+import { buildPageMetadata, siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
-  title: "Tornei",
-  description:
-    "Consulta e filtra i prossimi tornei individuali di padel FITP e TPRA in Italia.",
-};
+export const metadata: Metadata = buildPageMetadata({
+  title: "Tornei di padel FITP e TPRA in Italia",
+  description: siteConfig.description,
+  path: "/tornei",
+});
 
 type TournamentsPageProps = {
   searchParams: Promise<{

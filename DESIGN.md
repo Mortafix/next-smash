@@ -30,8 +30,8 @@ typography:
     fontFamily: '"Oswald", ui-sans-serif, system-ui, sans-serif'
     fontSize: "clamp(2rem, 9vw, 2.75rem)"
     fontWeight: 700
-    lineHeight: 0.9
-    letterSpacing: "-0.035em"
+    lineHeight: 0.8
+    letterSpacing: "-0.03em"
   display:
     fontFamily: '"Oswald", ui-sans-serif, system-ui, sans-serif'
     fontSize: "clamp(2.25rem, 10vw, 4.5rem)"
@@ -206,7 +206,7 @@ la velocità di lettura dei dati reali.
 
 ### Hierarchy
 
-- **Wordmark** (700, clamp 2rem–2.75rem, line-height 0.9): firma NextSmash nell'header, con tracking negativo.
+- **Wordmark** (700, clamp 2rem–2.72rem, line-height 0.8): firma `NEXT/SMASH` nell'header, inclinata di 6°; `NEXT` usa Bianco Circolo, mentre slash e `SMASH` usano Giallo Pallina.
 - **Display** (700, clamp 2.25rem–4.5rem, line-height 0.92): titoli pagina brevi, maiuscoli e con tracking negativo.
 - **Headline** (700, clamp 1.35rem–2rem, line-height 1): mesi, sezioni e intestazioni operative.
 - **Title** (700, clamp 1.25rem–1.65rem, line-height 1.05): nomi dei tornei e titoli delle card, con wrapping aggressivo per i dati lunghi.
@@ -307,6 +307,18 @@ Blu Campo e tab attivo Giallo Pallina con ombra. Mobile: barra inferiore fissa c
 tre destinazioni, icona più testo e stato corrente marcato da fondo giallo e barra
 inset Blu Campo Pressato.
 
+### Brand Signature
+
+Il wordmark ufficiale è `NEXT/SMASH`: una riga condensata inclinata in avanti, con
+slash giallo rinforzato da un'ombra Inchiostro Profondo e tagline maiuscola «Trova
+il prossimo torneo». Nell'header il wordmark resta testuale e non viene affiancato
+dal monogramma.
+
+Il monogramma NS in `public/brand/logo.png` è la sorgente ufficiale per favicon,
+Apple/PWA e anteprime social. Le versioni installabili usano Bianco Circolo come
+fondo; le versioni browser mantengono la trasparenza. Non ridisegnare né deformare
+il monogramma e non sostituire il wordmark testuale nell'header.
+
 ### Tournament Card
 
 La card firma del sistema separa una rotaia data Blu Campo dal corpo Bianco
@@ -329,6 +341,7 @@ Inchiostro Profondo e Bianco Circolo con un contrappunto Giallo Pallina.
 - **Do** progettare con nomi di torneo, circoli e località lunghi e realmente variabili.
 - **Do** accompagnare ogni stato cromatico con testo, struttura o icona comprensibile.
 - **Do** mantenere target interattivi da almeno 2.75rem e focus sempre visibile.
+- **Do** usare `NEXT/SMASH` nell'header e il monogramma solo per icone e condivisione.
 
 ### Don't:
 
@@ -338,3 +351,4 @@ Inchiostro Profondo e Bianco Circolo con un contrappunto Giallo Pallina.
 - **Don't** usare il carattere condensato per paragrafi o lunghi blocchi informativi.
 - **Don't** nascondere funzioni essenziali dietro breakpoint desktop.
 - **Don't** troncare dati ufficiali quando wrapping o ridistribuzione possono conservarli.
+- **Don't** affiancare il monogramma al wordmark nell'header o deformarlo per riempire un formato.

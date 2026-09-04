@@ -168,39 +168,13 @@ a {
 .brand-link {
   display: inline-flex;
   min-width: 0;
-  flex-direction: column;
-  align-items: flex-start;
+  flex: 0 1 auto;
   color: var(--ns-surface);
   text-decoration: none;
 }
 
-.brand-link:hover .brand-link__wordmark {
-  color: var(--ns-ball-soft);
-}
-
 .brand-link:focus-visible {
   outline-color: var(--ns-focus-on-dark);
-}
-
-.brand-link__wordmark {
-  color: var(--ns-ball);
-  font-family: var(--ns-font-display);
-  font-size: clamp(2rem, 9vw, 2.75rem);
-  font-weight: var(--ns-font-display-weight);
-  letter-spacing: -0.035em;
-  line-height: 0.9;
-  text-transform: uppercase;
-  transition: color var(--ns-motion-fast) var(--ns-ease-out);
-}
-
-.brand-link__tagline {
-  margin-top: var(--ns-space-2);
-  font-family: var(--ns-font-display);
-  font-size: 0.75rem;
-  font-weight: var(--ns-font-display-weight);
-  letter-spacing: 0.045em;
-  line-height: 1;
-  text-transform: uppercase;
 }
 
 .desktop-nav {
@@ -380,10 +354,6 @@ a {
 
   .app-header__inner {
     min-height: 5.5rem;
-  }
-
-  .brand-link__wordmark {
-    font-size: 2.75rem;
   }
 
   .desktop-nav {

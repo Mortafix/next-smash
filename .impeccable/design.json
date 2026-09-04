@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-03T13:16:41Z",
+  "generatedAt": "2026-09-04T14:20:00Z",
   "title": "Design System: NextSmash",
   "extensions": {
     "colorMeta": {
@@ -144,6 +144,10 @@
       }
     },
     "typographyMeta": {
+      "wordmark": {
+        "displayName": "Firma NEXT/SMASH",
+        "purpose": "Wordmark inclinato dell'header con NEXT chiaro, slash e SMASH in Giallo Pallina."
+      },
       "display": {
         "displayName": "Tabellone Display",
         "purpose": "Titoli pagina condensati, maiuscoli e ad alto impatto."
@@ -226,6 +230,13 @@
   },
   "components": [
     {
+      "name": "Brand Wordmark",
+      "kind": "custom",
+      "description": "Firma testuale NEXT/SMASH usata da sola nell'header; il monogramma resta riservato a icone e condivisione.",
+      "html": "<span class=\"ds-wordmark\"><span class=\"ds-wordmark-name\"><span>NEXT</span><i aria-hidden=\"true\"></i><strong>SMASH</strong></span><small>TROVA IL PROSSIMO TORNEO</small></span>",
+      "css": ".ds-wordmark { display:inline-flex; flex-direction:column; align-items:flex-start; color:var(--ns-surface); font-family:var(--ns-font-display); font-weight:700; text-transform:uppercase; } .ds-wordmark-name { display:inline-flex; align-items:center; font-size:2.72rem; letter-spacing:-.03em; line-height:.8; transform:skewX(-6deg); } .ds-wordmark-name > span { color:var(--ns-surface); } .ds-wordmark-name > strong { color:var(--ns-ball); } .ds-wordmark-name > i { width:.18em; height:.9em; margin:0 .1em 0 .13em; background:var(--ns-ball); box-shadow:.08em 0 var(--ns-ink); transform:skewX(-13deg); } .ds-wordmark > small { margin-top:.45rem; margin-left:.1rem; color:var(--ns-surface); font-size:.75rem; letter-spacing:.12em; line-height:1; }"
+    },
+    {
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
@@ -298,7 +309,8 @@
       "Gerarchia condensata e maiuscola per orientamento, titoli, date e controlli.",
       "Bordi strutturali da 2px e ombre nette da 3–4px per una tattilità coerente.",
       "Layout mobile-first che passa dalla navigazione inferiore all'header desktop.",
-      "Densità informativa alta ma leggibile, sostenuta da ritmo, raggruppamento e badge."
+      "Densità informativa alta ma leggibile, sostenuta da ritmo, raggruppamento e badge.",
+      "Firma NEXT/SMASH inclinata nell'header e monogramma NS riservato alle superfici di brand."
     ],
     "rules": [
       {
@@ -343,7 +355,8 @@
       "Do preservare bordi, ombre dure e feedback pressed come grammatica coerente.",
       "Do progettare con nomi di torneo, circoli e località lunghi e realmente variabili.",
       "Do accompagnare ogni stato cromatico con testo, struttura o icona comprensibile.",
-      "Do mantenere target interattivi da almeno 2.75rem e focus sempre visibile."
+      "Do mantenere target interattivi da almeno 2.75rem e focus sempre visibile.",
+      "Do usare NEXT/SMASH nell'header e il monogramma solo per icone e condivisione."
     ],
     "donts": [
       "Don't trasformare NextSmash in un'interfaccia SaaS generica fatta di card morbide e gradienti.",
@@ -351,7 +364,8 @@
       "Don't aggiungere ombre sfocate, glow, vetro traslucido o raggi eccessivi.",
       "Don't usare il carattere condensato per paragrafi o lunghi blocchi informativi.",
       "Don't nascondere funzioni essenziali dietro breakpoint desktop.",
-      "Don't troncare dati ufficiali quando wrapping o ridistribuzione possono conservarli."
+      "Don't troncare dati ufficiali quando wrapping o ridistribuzione possono conservarli.",
+      "Don't affiancare il monogramma al wordmark nell'header o deformarlo per riempire un formato."
     ]
   }
 }

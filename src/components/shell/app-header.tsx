@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { BrandWordmark } from "./brand-wordmark";
 import { DesktopNavigation } from "./desktop-navigation";
 
 export function AppHeader() {
@@ -11,8 +12,7 @@ export function AppHeader() {
           href="/tornei"
           aria-label="NextSmash, vai all’elenco dei tornei"
         >
-          <span className="brand-link__wordmark">NextSmash</span>
-          <span className="brand-link__tagline">Trova il prossimo torneo</span>
+          <BrandWordmark />
         </Link>
         <DesktopNavigation />
       </div>
