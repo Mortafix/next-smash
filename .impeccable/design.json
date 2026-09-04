@@ -1,0 +1,357 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-03T13:16:41Z",
+  "title": "Design System: NextSmash",
+  "extensions": {
+    "colorMeta": {
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Cemento Chiaro",
+        "canonical": "#f5f2e8",
+        "tonalRamp": ["oklch(from #f5f2e8 15% c h)", "oklch(from #f5f2e8 28% c h)", "oklch(from #f5f2e8 40% c h)", "oklch(from #f5f2e8 52% c h)", "oklch(from #f5f2e8 64% c h)", "oklch(from #f5f2e8 76% c h)", "oklch(from #f5f2e8 88% c h)", "oklch(from #f5f2e8 95% c h)"]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Bianco Circolo",
+        "canonical": "#fffef7",
+        "tonalRamp": ["oklch(from #fffef7 15% c h)", "oklch(from #fffef7 28% c h)", "oklch(from #fffef7 40% c h)", "oklch(from #fffef7 52% c h)", "oklch(from #fffef7 64% c h)", "oklch(from #fffef7 76% c h)", "oklch(from #fffef7 88% c h)", "oklch(from #fffef7 95% c h)"]
+      },
+      "surface-blue": {
+        "role": "neutral",
+        "displayName": "Azzurro Tabellone",
+        "canonical": "#d7f1f7",
+        "tonalRamp": ["oklch(from #d7f1f7 15% c h)", "oklch(from #d7f1f7 28% c h)", "oklch(from #d7f1f7 40% c h)", "oklch(from #d7f1f7 52% c h)", "oklch(from #d7f1f7 64% c h)", "oklch(from #d7f1f7 76% c h)", "oklch(from #d7f1f7 88% c h)", "oklch(from #d7f1f7 95% c h)"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Inchiostro Profondo",
+        "canonical": "#071923",
+        "tonalRamp": ["oklch(from #071923 15% c h)", "oklch(from #071923 28% c h)", "oklch(from #071923 40% c h)", "oklch(from #071923 52% c h)", "oklch(from #071923 64% c h)", "oklch(from #071923 76% c h)", "oklch(from #071923 88% c h)", "oklch(from #071923 95% c h)"]
+      },
+      "text-muted": {
+        "role": "neutral",
+        "displayName": "Ardesia Secondaria",
+        "canonical": "#4d626d",
+        "tonalRamp": ["oklch(from #4d626d 15% c h)", "oklch(from #4d626d 28% c h)", "oklch(from #4d626d 40% c h)", "oklch(from #4d626d 52% c h)", "oklch(from #4d626d 64% c h)", "oklch(from #4d626d 76% c h)", "oklch(from #4d626d 88% c h)", "oklch(from #4d626d 95% c h)"]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Bordo Inchiostro",
+        "canonical": "#071923",
+        "tonalRamp": ["oklch(from #071923 15% c h)", "oklch(from #071923 28% c h)", "oklch(from #071923 40% c h)", "oklch(from #071923 52% c h)", "oklch(from #071923 64% c h)", "oklch(from #071923 76% c h)", "oklch(from #071923 88% c h)", "oklch(from #071923 95% c h)"]
+      },
+      "court": {
+        "role": "primary",
+        "displayName": "Blu Campo",
+        "canonical": "#006b8f",
+        "tonalRamp": ["oklch(from #006b8f 15% c h)", "oklch(from #006b8f 28% c h)", "oklch(from #006b8f 40% c h)", "oklch(from #006b8f 52% c h)", "oklch(from #006b8f 64% c h)", "oklch(from #006b8f 76% c h)", "oklch(from #006b8f 88% c h)", "oklch(from #006b8f 95% c h)"]
+      },
+      "court-hover": {
+        "role": "primary",
+        "displayName": "Blu Campo Profondo",
+        "canonical": "#005b79",
+        "tonalRamp": ["oklch(from #005b79 15% c h)", "oklch(from #005b79 28% c h)", "oklch(from #005b79 40% c h)", "oklch(from #005b79 52% c h)", "oklch(from #005b79 64% c h)", "oklch(from #005b79 76% c h)", "oklch(from #005b79 88% c h)", "oklch(from #005b79 95% c h)"]
+      },
+      "court-pressed": {
+        "role": "primary",
+        "displayName": "Blu Campo Pressato",
+        "canonical": "#004d68",
+        "tonalRamp": ["oklch(from #004d68 15% c h)", "oklch(from #004d68 28% c h)", "oklch(from #004d68 40% c h)", "oklch(from #004d68 52% c h)", "oklch(from #004d68 64% c h)", "oklch(from #004d68 76% c h)", "oklch(from #004d68 88% c h)", "oklch(from #004d68 95% c h)"]
+      },
+      "ball": {
+        "role": "secondary",
+        "displayName": "Giallo Pallina",
+        "canonical": "#e6ff2e",
+        "tonalRamp": ["oklch(from #e6ff2e 15% c h)", "oklch(from #e6ff2e 28% c h)", "oklch(from #e6ff2e 40% c h)", "oklch(from #e6ff2e 52% c h)", "oklch(from #e6ff2e 64% c h)", "oklch(from #e6ff2e 76% c h)", "oklch(from #e6ff2e 88% c h)", "oklch(from #e6ff2e 95% c h)"]
+      },
+      "ball-hover": {
+        "role": "secondary",
+        "displayName": "Giallo Pallina Attivo",
+        "canonical": "#d7f200",
+        "tonalRamp": ["oklch(from #d7f200 15% c h)", "oklch(from #d7f200 28% c h)", "oklch(from #d7f200 40% c h)", "oklch(from #d7f200 52% c h)", "oklch(from #d7f200 64% c h)", "oklch(from #d7f200 76% c h)", "oklch(from #d7f200 88% c h)", "oklch(from #d7f200 95% c h)"]
+      },
+      "ball-pressed": {
+        "role": "secondary",
+        "displayName": "Giallo Pallina Pressato",
+        "canonical": "#c2db00",
+        "tonalRamp": ["oklch(from #c2db00 15% c h)", "oklch(from #c2db00 28% c h)", "oklch(from #c2db00 40% c h)", "oklch(from #c2db00 52% c h)", "oklch(from #c2db00 64% c h)", "oklch(from #c2db00 76% c h)", "oklch(from #c2db00 88% c h)", "oklch(from #c2db00 95% c h)"]
+      },
+      "ball-soft": {
+        "role": "secondary",
+        "displayName": "Alone Pallina",
+        "canonical": "#f5ffc2",
+        "tonalRamp": ["oklch(from #f5ffc2 15% c h)", "oklch(from #f5ffc2 28% c h)", "oklch(from #f5ffc2 40% c h)", "oklch(from #f5ffc2 52% c h)", "oklch(from #f5ffc2 64% c h)", "oklch(from #f5ffc2 76% c h)", "oklch(from #f5ffc2 88% c h)", "oklch(from #f5ffc2 95% c h)"]
+      },
+      "success": {
+        "role": "tertiary",
+        "displayName": "Verde Conferma",
+        "canonical": "#17663d",
+        "tonalRamp": ["oklch(from #17663d 15% c h)", "oklch(from #17663d 28% c h)", "oklch(from #17663d 40% c h)", "oklch(from #17663d 52% c h)", "oklch(from #17663d 64% c h)", "oklch(from #17663d 76% c h)", "oklch(from #17663d 88% c h)", "oklch(from #17663d 95% c h)"]
+      },
+      "success-bg": {
+        "role": "tertiary",
+        "displayName": "Verde Spogliatoio",
+        "canonical": "#e5f6ec",
+        "tonalRamp": ["oklch(from #e5f6ec 15% c h)", "oklch(from #e5f6ec 28% c h)", "oklch(from #e5f6ec 40% c h)", "oklch(from #e5f6ec 52% c h)", "oklch(from #e5f6ec 64% c h)", "oklch(from #e5f6ec 76% c h)", "oklch(from #e5f6ec 88% c h)", "oklch(from #e5f6ec 95% c h)"]
+      },
+      "warning": {
+        "role": "tertiary",
+        "displayName": "Ambra Avviso",
+        "canonical": "#874a00",
+        "tonalRamp": ["oklch(from #874a00 15% c h)", "oklch(from #874a00 28% c h)", "oklch(from #874a00 40% c h)", "oklch(from #874a00 52% c h)", "oklch(from #874a00 64% c h)", "oklch(from #874a00 76% c h)", "oklch(from #874a00 88% c h)", "oklch(from #874a00 95% c h)"]
+      },
+      "warning-bg": {
+        "role": "tertiary",
+        "displayName": "Carta Ambra",
+        "canonical": "#fff1cf",
+        "tonalRamp": ["oklch(from #fff1cf 15% c h)", "oklch(from #fff1cf 28% c h)", "oklch(from #fff1cf 40% c h)", "oklch(from #fff1cf 52% c h)", "oklch(from #fff1cf 64% c h)", "oklch(from #fff1cf 76% c h)", "oklch(from #fff1cf 88% c h)", "oklch(from #fff1cf 95% c h)"]
+      },
+      "danger": {
+        "role": "tertiary",
+        "displayName": "Rosso Stop",
+        "canonical": "#b42318",
+        "tonalRamp": ["oklch(from #b42318 15% c h)", "oklch(from #b42318 28% c h)", "oklch(from #b42318 40% c h)", "oklch(from #b42318 52% c h)", "oklch(from #b42318 64% c h)", "oklch(from #b42318 76% c h)", "oklch(from #b42318 88% c h)", "oklch(from #b42318 95% c h)"]
+      },
+      "danger-bg": {
+        "role": "tertiary",
+        "displayName": "Rosa Errore",
+        "canonical": "#fde7e4",
+        "tonalRamp": ["oklch(from #fde7e4 15% c h)", "oklch(from #fde7e4 28% c h)", "oklch(from #fde7e4 40% c h)", "oklch(from #fde7e4 52% c h)", "oklch(from #fde7e4 64% c h)", "oklch(from #fde7e4 76% c h)", "oklch(from #fde7e4 88% c h)", "oklch(from #fde7e4 95% c h)"]
+      },
+      "disabled-bg": {
+        "role": "neutral",
+        "displayName": "Cemento Disattivato",
+        "canonical": "#e1e6e6",
+        "tonalRamp": ["oklch(from #e1e6e6 15% c h)", "oklch(from #e1e6e6 28% c h)", "oklch(from #e1e6e6 40% c h)", "oklch(from #e1e6e6 52% c h)", "oklch(from #e1e6e6 64% c h)", "oklch(from #e1e6e6 76% c h)", "oklch(from #e1e6e6 88% c h)", "oklch(from #e1e6e6 95% c h)"]
+      },
+      "disabled-text": {
+        "role": "neutral",
+        "displayName": "Ardesia Disattivata",
+        "canonical": "#59676d",
+        "tonalRamp": ["oklch(from #59676d 15% c h)", "oklch(from #59676d 28% c h)", "oklch(from #59676d 40% c h)", "oklch(from #59676d 52% c h)", "oklch(from #59676d 64% c h)", "oklch(from #59676d 76% c h)", "oklch(from #59676d 88% c h)", "oklch(from #59676d 95% c h)"]
+      },
+      "focus": {
+        "role": "primary",
+        "displayName": "Blu Focus",
+        "canonical": "#004d68",
+        "tonalRamp": ["oklch(from #004d68 15% c h)", "oklch(from #004d68 28% c h)", "oklch(from #004d68 40% c h)", "oklch(from #004d68 52% c h)", "oklch(from #004d68 64% c h)", "oklch(from #004d68 76% c h)", "oklch(from #004d68 88% c h)", "oklch(from #004d68 95% c h)"]
+      },
+      "focus-on-dark": {
+        "role": "secondary",
+        "displayName": "Giallo Focus",
+        "canonical": "#e6ff2e",
+        "tonalRamp": ["oklch(from #e6ff2e 15% c h)", "oklch(from #e6ff2e 28% c h)", "oklch(from #e6ff2e 40% c h)", "oklch(from #e6ff2e 52% c h)", "oklch(from #e6ff2e 64% c h)", "oklch(from #e6ff2e 76% c h)", "oklch(from #e6ff2e 88% c h)", "oklch(from #e6ff2e 95% c h)"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Tabellone Display",
+        "purpose": "Titoli pagina condensati, maiuscoli e ad alto impatto."
+      },
+      "headline": {
+        "displayName": "Intestazione Operativa",
+        "purpose": "Mesi, sezioni e raggruppamenti principali."
+      },
+      "title": {
+        "displayName": "Titolo Torneo",
+        "purpose": "Nomi ufficiali e titoli di card con wrapping robusto."
+      },
+      "body": {
+        "displayName": "Corpo Informativo",
+        "purpose": "Testo, valori e metadati leggibili ad alta densità."
+      },
+      "label": {
+        "displayName": "Etichetta Campo",
+        "purpose": "Controlli, eyebrow, navigazione e micro-gerarchie."
+      }
+    },
+    "shadows": [
+      {
+        "name": "surface-structural",
+        "value": "4px 4px 0 var(--ns-ink)",
+        "purpose": "Card, search bar, filtri e calendario."
+      },
+      {
+        "name": "control-raised",
+        "value": "3px 3px 0 var(--ns-ink)",
+        "purpose": "Azioni e navigazione attiva."
+      },
+      {
+        "name": "control-pressed",
+        "value": "1px 1px 0 var(--ns-ink)",
+        "purpose": "Feedback active accompagnato da traslazione di 2px."
+      },
+      {
+        "name": "dialog-overlay",
+        "value": "8px 8px 0 var(--ns-ink)",
+        "purpose": "Dialoghi modali sopra il resto dell'app."
+      },
+      {
+        "name": "toast-inverted",
+        "value": "4px 4px 0 var(--ns-ball)",
+        "purpose": "Feedback temporaneo su fondo scuro."
+      }
+    ],
+    "motion": [
+      {
+        "name": "fast",
+        "value": "120ms",
+        "purpose": "Hover, pressione e conferme locali."
+      },
+      {
+        "name": "normal",
+        "value": "180ms",
+        "purpose": "Transizioni di stato più articolate."
+      },
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "purpose": "Easing standard deciso e privo di rimbalzo."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "wide-mobile",
+        "value": "40rem"
+      },
+      {
+        "name": "navigation-switch",
+        "value": "48rem"
+      },
+      {
+        "name": "desktop-layout",
+        "value": "64rem"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Azione primaria tattile in Giallo Pallina.",
+      "html": "<button class=\"ds-btn-primary\">QUESTO WEEKEND</button>",
+      "css": ".ds-btn-primary { display:inline-flex; min-height:2.75rem; align-items:center; justify-content:center; padding:.65rem 1rem; border:2px solid var(--ns-ink); border-radius:var(--ns-radius-control); background:var(--ns-ball); color:var(--ns-ink); box-shadow:3px 3px 0 var(--ns-ink); font-family:var(--ns-font-body); font-weight:850; cursor:pointer; transition:background-color var(--ns-motion-fast) var(--ns-ease-out),box-shadow var(--ns-motion-fast) var(--ns-ease-out),transform var(--ns-motion-fast) var(--ns-ease-out); } .ds-btn-primary:hover { background:var(--ns-ball-hover); } .ds-btn-primary:focus-visible { outline:3px solid var(--ns-focus); outline-offset:3px; } .ds-btn-primary:active { background:var(--ns-ball-pressed); box-shadow:1px 1px 0 var(--ns-ink); transform:translate(2px,2px); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Azione operativa ad alta enfasi in Blu Campo.",
+      "html": "<button class=\"ds-btn-secondary\">SALVA RICERCA</button>",
+      "css": ".ds-btn-secondary { display:inline-flex; min-height:2.75rem; align-items:center; justify-content:center; padding:.65rem 1rem; border:2px solid var(--ns-ink); border-radius:var(--ns-radius-control); background:var(--ns-court); color:var(--ns-surface); box-shadow:3px 3px 0 var(--ns-ink); font-family:var(--ns-font-body); font-weight:850; cursor:pointer; transition:background-color var(--ns-motion-fast) var(--ns-ease-out),box-shadow var(--ns-motion-fast) var(--ns-ease-out),transform var(--ns-motion-fast) var(--ns-ease-out); } .ds-btn-secondary:hover { background:var(--ns-court-hover); } .ds-btn-secondary:focus-visible { outline:3px solid var(--ns-focus); outline-offset:3px; } .ds-btn-secondary:active { background:var(--ns-court-pressed); box-shadow:1px 1px 0 var(--ns-ink); transform:translate(2px,2px); }"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Azione subordinata chiara e priva di elevazione iniziale.",
+      "html": "<button class=\"ds-btn-quiet\">ANNULLA</button>",
+      "css": ".ds-btn-quiet { display:inline-flex; min-height:2.75rem; align-items:center; justify-content:center; padding:.65rem 1rem; border:2px solid var(--ns-ink); border-radius:var(--ns-radius-control); background:var(--ns-surface); color:var(--ns-ink); font-family:var(--ns-font-body); font-weight:850; cursor:pointer; transition:background-color var(--ns-motion-fast) var(--ns-ease-out),transform var(--ns-motion-fast) var(--ns-ease-out); } .ds-btn-quiet:hover { background:var(--ns-surface-blue); } .ds-btn-quiet:focus-visible { outline:3px solid var(--ns-focus); outline-offset:3px; } .ds-btn-quiet:active { transform:translate(2px,2px); }"
+    },
+    {
+      "name": "Labeled Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Campo leggibile con etichetta condensata sempre visibile.",
+      "html": "<label class=\"ds-field\"><span>CERCA TORNEO, CIRCOLO O CITTÀ</span><input type=\"search\" placeholder=\"Es. Roma o weekend expert\"></label>",
+      "css": ".ds-field { display:flex; min-width:0; flex-direction:column; gap:.35rem; color:var(--ns-ink); } .ds-field > span { font-family:var(--ns-font-display); font-size:.8125rem; font-weight:900; letter-spacing:.045em; line-height:1; text-transform:uppercase; } .ds-field > input { width:100%; min-height:2.75rem; padding:.65rem .75rem; border:2px solid var(--ns-ink); border-radius:var(--ns-radius-control); background:var(--ns-surface); color:var(--ns-ink); font-family:var(--ns-font-body); font-size:1rem; } .ds-field > input::placeholder { color:var(--ns-text-muted); opacity:.82; } .ds-field > input:hover { background:var(--ns-surface); } .ds-field > input:focus-visible { outline:3px solid var(--ns-focus); outline-offset:3px; }"
+    },
+    {
+      "name": "Tournament Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Micro-etichetta a pillola per categoria o filtro.",
+      "html": "<span class=\"ds-chip\">3ª FASCIA</span>",
+      "css": ".ds-chip { display:inline-flex; align-items:center; min-height:1.6rem; padding:.22rem .5rem; border:1px solid var(--ns-ink); border-radius:var(--ns-radius-pill); background:var(--ns-ball-soft); color:var(--ns-ink); font-family:var(--ns-font-body); font-size:.75rem; font-weight:800; line-height:1; } .ds-chip:hover { background:var(--ns-ball); } .ds-chip:focus-visible { outline:3px solid var(--ns-focus); outline-offset:3px; }"
+    },
+    {
+      "name": "Primary Navigation",
+      "kind": "nav",
+      "refersTo": "navigation-active",
+      "description": "Navigazione condensata su Blu Campo con tab corrente tattile.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Navigazione principale\"><a class=\"ds-nav-active\" href=\"#\">TORNEI</a><a href=\"#\">CALENDARIO</a><a href=\"#\">PREFERENZE</a></nav>",
+      "css": ".ds-nav { display:flex; align-items:center; gap:.75rem; padding:1rem; background:var(--ns-court); } .ds-nav a { display:inline-flex; min-height:2.75rem; align-items:center; justify-content:center; padding:0 1.5rem; border:2px solid transparent; border-radius:var(--ns-radius-control); color:var(--ns-surface); font-family:var(--ns-font-display); font-size:1rem; font-weight:800; letter-spacing:.02em; line-height:1; text-decoration:none; transition:background-color var(--ns-motion-fast) var(--ns-ease-out),border-color var(--ns-motion-fast) var(--ns-ease-out),transform var(--ns-motion-fast) var(--ns-ease-out); } .ds-nav a:hover { border-color:var(--ns-ink); background:var(--ns-surface-blue); color:var(--ns-ink); } .ds-nav a:focus-visible { outline:3px solid var(--ns-focus-on-dark); outline-offset:3px; } .ds-nav .ds-nav-active { border-color:var(--ns-ink); background:var(--ns-ball); color:var(--ns-ink); box-shadow:3px 3px 0 var(--ns-ink); }"
+    },
+    {
+      "name": "Tournament Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Componente firma con rotaia data e sequenza informativa scansionabile.",
+      "html": "<article class=\"ds-tournament-card\"><div class=\"ds-date\"><strong>12</strong><span>SET</span></div><div class=\"ds-card-body\"><div class=\"ds-badges\"><span>FITP</span><span>ISCRIZIONE ONLINE</span></div><h3>TORNEO OPEN DI PADEL</h3><p class=\"ds-card-date\">12–14 settembre 2026</p><p class=\"ds-place\"><strong>PADEL CLUB ITALIA</strong><span>Roma · RM</span></p><a href=\"#\">Dettagli ufficiali ↗</a></div></article>",
+      "css": ".ds-tournament-card { display:grid; min-width:0; grid-template-columns:5.25rem minmax(0,1fr); overflow:hidden; border:2px solid var(--ns-ink); border-radius:var(--ns-radius-card); background:var(--ns-surface); color:var(--ns-ink); box-shadow:4px 4px 0 var(--ns-ink); font-family:var(--ns-font-body); } .ds-date { display:flex; align-items:center; flex-direction:column; padding:1rem .5rem; border-right:2px solid var(--ns-ink); background:var(--ns-court); color:var(--ns-surface); font-family:var(--ns-font-display); text-transform:uppercase; } .ds-date strong { color:var(--ns-ball); font-size:2rem; font-weight:900; line-height:.95; } .ds-date span { margin-top:.25rem; font-size:.8rem; font-weight:900; } .ds-card-body { min-width:0; padding:1.5rem; } .ds-badges { display:flex; flex-wrap:wrap; gap:.5rem; } .ds-badges span { padding:.2rem .5rem; border:1px solid var(--ns-ink); border-radius:var(--ns-radius-pill); background:var(--ns-ball-soft); font-size:.6875rem; font-weight:900; } .ds-badges span:first-child { background:var(--ns-court); color:var(--ns-surface); } .ds-card-body h3 { margin:.75rem 0 .25rem; overflow-wrap:anywhere; font-family:var(--ns-font-display); font-size:1.65rem; font-weight:900; letter-spacing:-.02em; line-height:1.05; } .ds-card-date { margin:0; color:var(--ns-text-muted); font-size:.8125rem; font-weight:700; } .ds-place { display:flex; flex-direction:column; margin:.75rem 0; line-height:1.35; } .ds-place span { color:var(--ns-text-muted); font-size:.8125rem; } .ds-card-body a { display:inline-flex; min-height:2.75rem; align-items:center; color:var(--ns-court-pressed); font-weight:900; text-underline-offset:.22rem; } .ds-card-body a:focus-visible { outline:3px solid var(--ns-focus); outline-offset:3px; }"
+    },
+    {
+      "name": "Warning Status",
+      "kind": "custom",
+      "refersTo": "status-warning",
+      "description": "Avviso esplicito sulla freschezza dei dati.",
+      "html": "<p class=\"ds-status\" role=\"status\">I dati potrebbero non essere aggiornati.</p>",
+      "css": ".ds-status { max-width:42rem; margin:0; padding:.75rem 1rem; border:2px solid currentColor; border-radius:var(--ns-radius-control); background:var(--ns-warning-bg); color:var(--ns-warning); font-family:var(--ns-font-body); font-weight:700; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Il Tabellone del Circolo",
+    "overview": "Il Tabellone del Circolo traduce la chiarezza pubblica di un tabellone gare e l'energia fisica del campo in un sistema digitale immediato. Blocchi netti, tipografia condensata, date in evidenza e accenti da pallina da padel rendono scansionabili anche elenchi densi senza perdere personalità.\n\nIl sistema deve risultare energico, pop e accessibile: espressivo nei contrasti, disciplinato nella griglia e tattile nelle interazioni. La sua identità rifiuta l'estetica SaaS generica, le superfici indistinte e la decorazione che compete con date, luogo, livello e azione ufficiale.",
+    "keyCharacteristics": [
+      "Contrasto deciso fra Blu Campo, Giallo Pallina, Inchiostro Profondo e superfici calde.",
+      "Gerarchia condensata e maiuscola per orientamento, titoli, date e controlli.",
+      "Bordi strutturali da 2px e ombre nette da 3–4px per una tattilità coerente.",
+      "Layout mobile-first che passa dalla navigazione inferiore all'header desktop.",
+      "Densità informativa alta ma leggibile, sostenuta da ritmo, raggruppamento e badge."
+    ],
+    "rules": [
+      {
+        "name": "The Court-and-Ball Rule",
+        "body": "Blu Campo costruisce la struttura; Giallo Pallina segnala priorità, selezione o avanzamento. Non usarli come decorazione casuale.",
+        "section": "colors"
+      },
+      {
+        "name": "The Truthful State Rule",
+        "body": "Successo, avviso ed errore combinano sempre tinta, testo esplicito e, quando serve, una forma o un bordo: il colore non comunica mai da solo.",
+        "section": "colors"
+      },
+      {
+        "name": "The Condensed Means Command Rule",
+        "body": "Il carattere condensato è riservato a gerarchia, orientamento e azione; non deve invadere il corpo informativo.",
+        "section": "typography"
+      },
+      {
+        "name": "The Readability First Rule",
+        "body": "Nomi ufficiali, località e date possono essere lunghi: vanno mandati a capo e contenuti, mai ridotti fino a diventare ambigui.",
+        "section": "typography"
+      },
+      {
+        "name": "The Mobile Starts the Match Rule",
+        "body": "La funzione primaria deve essere completa prima dei 48rem; il desktop può aggiungere persistenza e spazio, non funzioni esclusive.",
+        "section": "layout"
+      },
+      {
+        "name": "The Physical Feedback Rule",
+        "body": "Un controllo con ombra deve perdere quota quando viene premuto; con reduced motion la variazione resta cromatica o di ombra senza traslazione.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Ink Holds the Form Rule",
+        "body": "La silhouette viene dal bordo scuro e dalla geometria, non da gradienti, glow o vetro traslucido.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "Do usare i token semantici esistenti invece di valori isolati.",
+      "Do mantenere Giallo Pallina raro e legato ad azione, selezione o conteggio prioritario.",
+      "Do preservare bordi, ombre dure e feedback pressed come grammatica coerente.",
+      "Do progettare con nomi di torneo, circoli e località lunghi e realmente variabili.",
+      "Do accompagnare ogni stato cromatico con testo, struttura o icona comprensibile.",
+      "Do mantenere target interattivi da almeno 2.75rem e focus sempre visibile."
+    ],
+    "donts": [
+      "Don't trasformare NextSmash in un'interfaccia SaaS generica fatta di card morbide e gradienti.",
+      "Don't introdurre nero puro, grigi neutri o nuovi accenti senza un ruolo semantico.",
+      "Don't aggiungere ombre sfocate, glow, vetro traslucido o raggi eccessivi.",
+      "Don't usare il carattere condensato per paragrafi o lunghi blocchi informativi.",
+      "Don't nascondere funzioni essenziali dietro breakpoint desktop.",
+      "Don't troncare dati ufficiali quando wrapping o ridistribuzione possono conservarli."
+    ]
+  }
+}

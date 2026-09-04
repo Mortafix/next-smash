@@ -1,0 +1,30 @@
+{
+  "generatedAt": "2026-03-06T09:47:09.000Z",
+  "license": "CC BY 4.0",
+  "attribution": "Dati geografici e amministrativi © ISTAT.",
+  "records": 7894,
+  "sources": [
+    {
+      "url": "https://www.istat.it/storage/codici-unita-amministrative/Elenco-comuni-italiani.xlsx",
+      "lastModified": "Thu, 26 Feb 2026 16:17:49 GMT",
+      "etag": "\"69a0722f-12c413:dtagent10343260715123811MZpe:dtagent10343260715123811MZpe\"",
+      "sha256": "83842076860450f7e482daecea6b7a769f5f93d0bf5b0d48802b44896d7a26d5"
+    },
+    {
+      "url": "https://www.istat.it/storage/cartografia/confini_amministrativi/generalizzati/2026/Limiti01012026_g.zip",
+      "lastModified": "Fri, 06 Mar 2026 09:47:09 GMT",
+      "etag": "\"69aaa29d-9f76b1\"",
+      "sha256": "b011a590656c3a3ebc297fba80726a376aa843b6f164641cf6a4a990021a81d6"
+    }
+  ],
+  "geometryOverrides": {
+    "018094": [
+      "018094",
+      "018082"
+    ],
+    "024129": [
+      "024027",
+      "024071"
+    ]
+  }
+}

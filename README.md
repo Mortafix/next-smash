@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NextSmash
 
-## Getting Started
+Portale pubblico, mobile-first e senza account per trovare rapidamente i tornei
+individuali di padel FITP e TPRA in Italia.
 
-First, run the development server:
+## Funzioni disponibili
+
+- elenco cronologico con ricerca e filtri per circuito, tipologia, fascia/livello,
+  regione, provincia e intervallo date;
+- ordinamento per distanza, usando la posizione del browser oppure il centro del
+  comune scelto;
+- calendario mensile con agenda giornaliera;
+- filtri predefiniti e ricerche salvate in `localStorage`;
+- contatore aggregato delle visite, senza identificatori personali;
+- aggiornamento automatico all’apertura quando i dati hanno più di 12 ore, con
+  conservazione dell’ultimo snapshot valido in caso di errore.
+
+## Stack
+
+- Next.js 16, React 19 e TypeScript;
+- Tailwind CSS 4 più CSS custom per il design “Cemento & Campo”;
+- SQLite, better-sqlite3 e Drizzle ORM;
+- Zod per validare le risposte esterne;
+- Vitest, Testing Library e Playwright.
+
+Richiede Node.js 22 o successivo e pnpm 11 (la versione è fissata in
+`package.json`).
+
+## Avvio locale
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+corepack enable
+pnpm install
+cp .env.example .env
+pnpm db:migrate
+pnpm sync:tournaments
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Apri [http://localhost:3000](http://localhost:3000). Il dataset comunale ISTAT è
+già incluso: non è necessario rigenerarlo per avviare l’app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Variabili d’ambiente
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variabile | Default | Uso |
+| --- | --- | --- |
+| `DATABASE_PATH` | `.data/next-smash.sqlite` | File SQLite persistente |
+| `PUC_API_URL` | endpoint interno PUC indicato in `.env.example` | Fonte tornei server-side |
+| `SYNC_HORIZON_DAYS` | `400` | Orizzonte futuro conservato |
+| `TOURNAMENT_REFRESH_AFTER_HOURS` | `12` | Età massima dei dati prima del refresh automatico |
 
-## Learn More
+Nessuna variabile è esposta al browser e nel repository non sono richiesti segreti.
 
-To learn more about Next.js, take a look at the following resources:
+## Comandi di qualità e manutenzione
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm exec playwright install chromium
+pnpm test:e2e
+pnpm build
+pnpm db:generate
+pnpm db:migrate
+pnpm sync:tournaments
+pnpm data:update:municipalities
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+`data:update:municipalities` scarica l’anagrafica e i confini ufficiali ISTAT,
+ricalcola i punti rappresentativi e aggiorna manifest e checksum. Serve solo quando
+ISTAT pubblica una nuova versione.
 
-## Deploy on Vercel
+## Struttura
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `src/app`: pagine, route API e stili;
+- `src/components`: shell, elenco, calendario e preferenze;
+- `src/lib/tournaments`: adapter PUC, filtri, repository e sincronizzazione;
+- `src/lib/locations`: normalizzazione e ricerca comunale;
+- `src/db`: schema e client SQLite;
+- `scripts`: sincronizzazione e aggiornamento dati ISTAT;
+- `drizzle`: migrazioni versionate;
+- `docs`: architettura e guida Linode.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Dati e attribuzione
+
+PUC/FITP e TPRA restano le fonti ufficiali dei tornei; ogni card rimanda al dettaglio
+originale. Le coordinate amministrative derivano da dati ISTAT CC BY 4.0. Fonti,
+checksum e override sono in
+[`src/data/municipalities.manifest.json`](src/data/municipalities.manifest.json) e
+l’attribuzione completa è in [`src/data/ATTRIBUTION.md`](src/data/ATTRIBUTION.md).
+
+Per architettura e limiti noti vedi [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+Per il server personale vedi [`docs/DEPLOY_LINODE.md`](docs/DEPLOY_LINODE.md).
