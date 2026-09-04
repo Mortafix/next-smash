@@ -7,14 +7,20 @@ import {
   within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { toBlob } from "html-to-image";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TournamentDetailDialog } from "@/components/tournaments/tournament-detail-dialog";
 import type { TournamentWithDistance } from "@/lib/tournaments/filters";
 import type { TournamentRegistrationSummary } from "@/lib/tournaments/registration-types";
 
+vi.mock("html-to-image", () => ({ toBlob: vi.fn() }));
+
 const fetchMock = vi.fn();
 const writeText = vi.fn();
+const toBlobMock = vi.mocked(toBlob);
+const createObjectURL = vi.fn();
+const revokeObjectURL = vi.fn();
 
 function tournament(
   overrides: Partial<TournamentWithDistance> = {},
@@ -89,7 +95,21 @@ beforeEach(() => {
   fetchMock.mockResolvedValue(successfulResponse());
   writeText.mockReset();
   writeText.mockResolvedValue(undefined);
+  toBlobMock.mockReset();
+  toBlobMock.mockResolvedValue(new Blob(["png"], { type: "image/png" }));
+  createObjectURL.mockReset();
+  createObjectURL.mockReturnValue("blob:http://localhost/tournament-image");
+  revokeObjectURL.mockReset();
   vi.stubGlobal("fetch", fetchMock);
+
+  Object.defineProperty(URL, "createObjectURL", {
+    configurable: true,
+    value: createObjectURL,
+  });
+  Object.defineProperty(URL, "revokeObjectURL", {
+    configurable: true,
+    value: revokeObjectURL,
+  });
 
   Object.defineProperty(navigator, "clipboard", {
     configurable: true,
@@ -220,6 +240,43 @@ describe("TournamentDetailDialog", () => {
     expect(within(alert).getByRole("textbox")).toHaveValue(
       "http://localhost/tornei?torneo=fitp%3A1073",
     );
+  });
+
+  it("scarica un PNG del contenuto senza i comandi del dialog", async () => {
+    const downloadClick = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => undefined);
+    render(<TournamentDetailDialog tournament={tournament()} onClose={vi.fn()} />);
+    const downloadButton = screen.getByRole("button", {
+      name: "Scarica l'immagine di Open Corbetta Sport Center",
+    });
+    const shareButton = screen.getByRole("button", { name: "Condividi" });
+    expect(
+      Array.from(
+        downloadButton
+          .closest(".ns-tournament-detail-dialog__share-actions")
+          ?.querySelectorAll("button") ?? [],
+      ),
+    ).toEqual([downloadButton, shareButton]);
+
+    fireEvent.click(downloadButton);
+
+    await waitFor(() => expect(toBlobMock).toHaveBeenCalledTimes(1));
+    const exportNode = toBlobMock.mock.calls[0]?.[0];
+    expect(exportNode).toHaveClass("ns-tournament-detail-dialog--image-export");
+    expect(exportNode).toHaveTextContent("Open Corbetta Sport Center");
+    expect(exportNode.querySelector("footer")).not.toBeInTheDocument();
+    expect(
+      exportNode.querySelector('[aria-label^="Chiudi dettagli di"]'),
+    ).not.toBeInTheDocument();
+    expect(createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+    expect(downloadClick).toHaveBeenCalledTimes(1);
+    expect((downloadClick.mock.instances[0] as HTMLAnchorElement).download).toBe(
+      "nextsmash-open-corbetta-sport-center.png",
+    );
+    expect(
+      await screen.findByText("Immagine del torneo scaricata."),
+    ).toBeInTheDocument();
   });
 
   it("inoltra Escape e click fuori dal rettangolo senza richiamare onClose alla chiusura controllata", () => {

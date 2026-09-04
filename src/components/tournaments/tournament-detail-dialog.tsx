@@ -4,6 +4,7 @@ import {
   faArrowUpRightFromSquare,
   faCalendarDays,
   faCheck,
+  faDownload,
   faLocationDot,
   faMarsDouble,
   faMedal,
@@ -50,6 +51,11 @@ type CopyResult = {
   tournamentId: string;
   status: "success" | "error";
   url: string;
+};
+
+type ImageExportResult = {
+  tournamentId: string;
+  status: "loading" | "success" | "error";
 };
 
 const dateFormatter = new Intl.DateTimeFormat("it-IT", {
@@ -202,6 +208,17 @@ function canonicalTournamentUrl(tournamentId: string) {
   return new URL(relativeUrl, window.location.origin).toString();
 }
 
+function tournamentImageFilename(title: string) {
+  const slug = title
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("it-IT")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+  return `nextsmash-${slug || "torneo"}.png`;
+}
+
 function countLabel(count: number, singular: string, plural: string) {
   return count === 1 ? singular : plural;
 }
@@ -253,6 +270,8 @@ export function TournamentDetailDialog({
     status: "idle",
   });
   const [copyResult, setCopyResult] = useState<CopyResult | null>(null);
+  const [imageExportResult, setImageExportResult] =
+    useState<ImageExportResult | null>(null);
   const isOpen = tournament !== null;
   const tournamentId = tournament?.id ?? null;
   const tournamentSource = tournament?.source ?? null;
@@ -392,6 +411,64 @@ export function TournamentDetailDialog({
     }
   }
 
+  async function downloadTournamentImage() {
+    const dialog = dialogRef.current;
+    if (!dialog || !tournament) return;
+
+    const selectedTournament = tournament;
+    setImageExportResult({
+      tournamentId: selectedTournament.id,
+      status: "loading",
+    });
+
+    const exportNode = dialog.cloneNode(true) as HTMLDialogElement;
+    exportNode.removeAttribute("open");
+    exportNode.setAttribute("aria-hidden", "true");
+    exportNode.classList.add("ns-tournament-detail-dialog--image-export");
+    exportNode.style.width = `${Math.ceil(dialog.getBoundingClientRect().width)}px`;
+    exportNode
+      .querySelectorAll<HTMLElement>("[data-image-export-hidden]")
+      .forEach((element) => element.remove());
+    document.body.append(exportNode);
+
+    try {
+      await document.fonts?.ready;
+      const { toBlob } = await import("html-to-image");
+      const blob = await toBlob(exportNode, {
+        backgroundColor: window.getComputedStyle(dialog).backgroundColor,
+        cacheBust: true,
+        pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+        style: {
+          inset: "auto",
+          position: "static",
+          zIndex: "auto",
+        },
+      });
+      if (!blob) throw new Error("Image export failed");
+
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.download = tournamentImageFilename(selectedTournament.title);
+      link.href = downloadUrl;
+      link.style.display = "none";
+      document.body.append(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1_000);
+      setImageExportResult({
+        tournamentId: selectedTournament.id,
+        status: "success",
+      });
+    } catch {
+      setImageExportResult({
+        tournamentId: selectedTournament.id,
+        status: "error",
+      });
+    } finally {
+      exportNode.remove();
+    }
+  }
+
   const genders = tournament ? visibleGenders(tournament.genders) : [];
   const rankLabel = tournament ? rankCategoryLabel(tournament.rankCategories) : null;
   const tpraLevel = tournament?.tpraLevel?.trim().toLocaleUpperCase("it-IT") ?? null;
@@ -402,6 +479,8 @@ export function TournamentDetailDialog({
       : null;
   const visibleCopyResult =
     copyResult?.tournamentId === tournamentId ? copyResult : null;
+  const visibleImageExportResult =
+    imageExportResult?.tournamentId === tournamentId ? imageExportResult : null;
 
   return (
     <dialog
@@ -451,6 +530,7 @@ export function TournamentDetailDialog({
               className="ns-icon-button"
               type="button"
               aria-label={`Chiudi dettagli di ${tournament.title}`}
+              data-image-export-hidden
               autoFocus
               onClick={requestClose}
             >
@@ -607,20 +687,48 @@ export function TournamentDetailDialog({
             </div>
           </div>
 
-          <footer className="ns-tournament-detail-dialog__footer">
+          <footer
+            className="ns-tournament-detail-dialog__footer"
+            data-image-export-hidden
+          >
             <div className="ns-tournament-detail-dialog__actions">
-              <button
-                className="ns-button ns-button--primary"
-                type="button"
-                onClick={() => void shareTournament()}
-              >
-                <FontAwesomeIcon
-                  className="ns-button__icon"
-                  icon={visibleCopyResult?.status === "success" ? faCheck : faShareNodes}
-                  aria-hidden="true"
-                />
-                {visibleCopyResult?.status === "success" ? "Link copiato" : "Condividi"}
-              </button>
+              <div className="ns-tournament-detail-dialog__share-actions">
+                <button
+                  className="ns-button ns-button--primary ns-tournament-detail-dialog__download-action"
+                  type="button"
+                  aria-label={
+                    visibleImageExportResult?.status === "loading"
+                      ? "Creazione immagine in corso"
+                      : `Scarica l'immagine di ${tournament.title}`
+                  }
+                  aria-busy={visibleImageExportResult?.status === "loading"}
+                  title="Scarica immagine"
+                  disabled={visibleImageExportResult?.status === "loading"}
+                  onClick={() => void downloadTournamentImage()}
+                >
+                  <FontAwesomeIcon
+                    className="ns-button__icon"
+                    icon={faDownload}
+                    aria-hidden="true"
+                  />
+                </button>
+                <button
+                  className="ns-button ns-button--primary"
+                  type="button"
+                  onClick={() => void shareTournament()}
+                >
+                  <FontAwesomeIcon
+                    className="ns-button__icon"
+                    icon={
+                      visibleCopyResult?.status === "success" ? faCheck : faShareNodes
+                    }
+                    aria-hidden="true"
+                  />
+                  {visibleCopyResult?.status === "success"
+                    ? "Link copiato"
+                    : "Condividi"}
+                </button>
+              </div>
               <a
                 className="ns-button ns-button--secondary ns-tournament-detail-dialog__official-link"
                 href={tournament.officialUrl}
@@ -652,9 +760,20 @@ export function TournamentDetailDialog({
               </div>
             ) : null}
 
+            {visibleImageExportResult?.status === "error" ? (
+              <p className="ns-tournament-detail-dialog__image-export-error" role="alert">
+                Non riusciamo a creare l’immagine. Riprova.
+              </p>
+            ) : null}
+
             <p className="ns-visually-hidden" aria-live="polite" aria-atomic="true">
               {visibleCopyResult?.status === "success"
                 ? "Link del torneo copiato negli appunti."
+                : ""}
+            </p>
+            <p className="ns-visually-hidden" aria-live="polite" aria-atomic="true">
+              {visibleImageExportResult?.status === "success"
+                ? "Immagine del torneo scaricata."
                 : ""}
             </p>
           </footer>

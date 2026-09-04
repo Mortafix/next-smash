@@ -89,6 +89,13 @@ test("apre, condivide e naviga il dettaglio del torneo", async ({
     ),
   ).toEqual([]);
 
+  const imageDownload = page.waitForEvent("download");
+  await dialog
+    .getByRole("button", { name: `Scarica l'immagine di ${title}` })
+    .click();
+  await expect(dialog.getByText("Immagine del torneo scaricata.")).toBeAttached();
+  expect((await imageDownload).suggestedFilename()).toMatch(/^nextsmash-.+\.png$/);
+
   await dialog.getByRole("button", { name: "Condividi" }).click();
   await expect(dialog.getByRole("button", { name: "Link copiato" })).toBeVisible();
   const expectedUrl = new URL(href ?? "/tornei", "http://localhost:3000").toString();

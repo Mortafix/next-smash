@@ -46,6 +46,10 @@ await page.screenshot({ path: ".impeccable/review/title-hover.png" });
 await titleLink.click();
 await page.getByText("17", { exact: true }).waitFor();
 await page.screenshot({ path: ".impeccable/review/desktop.png" });
+const imageDownload = page.waitForEvent("download");
+await page.getByRole("button", { name: /Scarica l'immagine di/ }).click();
+const downloadedImage = await imageDownload;
+await downloadedImage.saveAs(".impeccable/review/tournament-share.png");
 
 await page.setViewportSize({ width: 320, height: 720 });
 await page.goto(new URL(href ?? "/tornei", "http://localhost:3000").toString());

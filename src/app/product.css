@@ -2847,6 +2847,24 @@
   grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
+.ns-tournament-detail-dialog--image-export {
+  position: fixed;
+  z-index: -1;
+  inset: 0 auto auto -10000px;
+  display: grid;
+  max-height: none;
+  grid-template-rows: auto auto;
+  overflow: hidden;
+  pointer-events: none;
+  box-shadow: none;
+  transform: none;
+}
+
+.ns-tournament-detail-dialog--image-export
+  .ns-tournament-detail-dialog__scroll {
+  overflow: visible;
+}
+
 .ns-tournament-detail-dialog::backdrop {
   background: color-mix(in srgb, var(--ns-ink) 44%, transparent);
 }
@@ -3101,6 +3119,19 @@
   min-width: 0;
 }
 
+.ns-tournament-detail-dialog__share-actions {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 2.75rem minmax(0, 1fr);
+  gap: var(--ns-space-3);
+}
+
+.ns-tournament-detail-dialog__actions
+  .ns-tournament-detail-dialog__download-action {
+  width: 2.75rem;
+  padding: 0;
+}
+
 .ns-tournament-detail-dialog__official-link {
   text-decoration: none;
 }
@@ -3123,6 +3154,13 @@
 .ns-tournament-detail-dialog__share-error .ns-input {
   color: var(--ns-ink);
   font-size: 0.8125rem;
+}
+
+.ns-tournament-detail-dialog__image-export-error {
+  margin: 0;
+  color: var(--ns-danger);
+  font-size: 0.8125rem;
+  font-weight: 700;
 }
 
 @media (min-width: 40rem) {
