@@ -144,9 +144,11 @@ export function FilterPanel({
   const visibleProvinces = filters.region
     ? provinces.filter((province) => province.region === filters.region)
     : [];
-  const weekend = weekendRange();
-  const weekendSelected =
-    filters.dateFrom === weekend.dateFrom && filters.dateTo === weekend.dateTo;
+  const referenceDate = new Date();
+  const weekendPresets = [
+    { label: "Questo weekend", range: weekendRange(referenceDate) },
+    { label: "Prossimo weekend", range: weekendRange(referenceDate, 1) },
+  ];
 
   function patch(values: Partial<TournamentFilters>) {
     onChange((current) => ({ ...current, ...values }));
@@ -198,32 +200,19 @@ export function FilterPanel({
           <div className="ns-filter-fields">
             <fieldset className="ns-filter-group">
               <legend>Quando</legend>
-              <label
-                className="ns-choice-chip ns-choice-chip--standalone"
-                data-selected={weekendSelected || undefined}
-              >
-                <input
-                  className="ns-visually-hidden"
-                  type="checkbox"
-                  checked={weekendSelected}
-                  onChange={() =>
-                    patch(
-                      weekendSelected
-                        ? { dateFrom: "", dateTo: "" }
-                        : weekend,
-                    )
-                  }
-                />
-                <FontAwesomeIcon icon={faCalendarWeek} aria-hidden="true" />
-                <span>Questo weekend</span>
-                {weekendSelected ? (
-                  <FontAwesomeIcon
-                    className="ns-choice-chip__check"
-                    icon={faCheck}
-                    aria-hidden="true"
-                  />
-                ) : null}
-              </label>
+              {weekendPresets.map(({ label, range }) => {
+                const selected = filters.dateFrom === range.dateFrom && filters.dateTo === range.dateTo;
+                return (
+                  <label key={label} className="ns-choice-chip ns-choice-chip--standalone"
+                    data-selected={selected || undefined}>
+                    <input className="ns-visually-hidden" type="checkbox" checked={selected}
+                      onChange={() => patch(selected ? { dateFrom: "", dateTo: "" } : range)} />
+                    <FontAwesomeIcon icon={faCalendarWeek} aria-hidden="true" />
+                    <span>{label}</span>
+                    {selected ? <FontAwesomeIcon className="ns-choice-chip__check" icon={faCheck} aria-hidden="true" /> : null}
+                  </label>
+                );
+              })}
 
               <div className="ns-field-grid ns-field-grid--dates">
                 <ItalianDateInput

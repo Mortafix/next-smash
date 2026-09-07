@@ -110,6 +110,20 @@ describe("geografia e scorciatoie", () => {
       dateTo: "2026-09-06",
     });
   });
+
+  it("distingue questo weekend dal prossimo anche la domenica", () => {
+    const sunday = new Date(2026, 8, 6, 12);
+    expect(weekendRange(sunday)).toEqual({ dateFrom: "2026-09-05", dateTo: "2026-09-06" });
+    expect(weekendRange(sunday, 1)).toEqual({ dateFrom: "2026-09-12", dateTo: "2026-09-13" });
+  });
+
+  it.each([
+    [new Date(2026, 8, 7, 12), "2026-09-19", "2026-09-20"],
+    [new Date(2026, 11, 27, 12), "2027-01-02", "2027-01-03"],
+    [new Date(2026, 2, 22, 12), "2026-03-28", "2026-03-29"],
+  ])("calcola il prossimo weekend oltre i cambi di mese, anno e ora legale (%s)", (reference, dateFrom, dateTo) => {
+    expect(weekendRange(reference, 1)).toEqual({ dateFrom, dateTo });
+  });
 });
 
 describe("riepilogo filtri", () => {

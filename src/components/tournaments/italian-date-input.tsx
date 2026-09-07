@@ -4,6 +4,8 @@ import { faCalendarDays } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useId, useRef, useState } from "react";
 
+import { ItalianDatePicker } from "@/components/tournaments/italian-date-picker";
+
 type ItalianDateInputProps = {
   label: string;
   value: string;
@@ -38,7 +40,13 @@ function parseItalianDate(value: string) {
 
 function normalizeDraft(value: string) {
   const sanitized = value.replace(/[^\d/]/g, "");
-  if (sanitized.includes("/")) return sanitized.slice(0, 10);
+  if (sanitized.includes("/")) {
+    const parts = sanitized.split("/");
+    if (parts.length === 2 && parts[0].length === 2 && parts[1].length > 2) {
+      return `${parts[0]}/${parts[1].slice(0, 2)}/${parts[1].slice(2, 6)}`;
+    }
+    return sanitized.slice(0, 10);
+  }
 
   const digits = sanitized.slice(0, 8);
   if (digits.length <= 2) return digits;
@@ -55,8 +63,10 @@ export function ItalianDateInput({
 }: ItalianDateInputProps) {
   const inputId = useId();
   const errorId = useId();
-  const pickerRef = useRef<HTMLInputElement>(null);
+  const pickerId = useId();
+  const anchorRef = useRef<HTMLDivElement>(null);
   const pickerButtonRef = useRef<HTMLButtonElement>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [draft, setDraft] = useState(() => formatIsoDate(value));
   const [editing, setEditing] = useState(false);
   const [validation, setValidation] = useState<{
@@ -103,19 +113,9 @@ export function ItalianDateInput({
     onChange(isoDate);
   }
 
-  function openPicker() {
-    const picker = pickerRef.current;
-    if (!picker) return;
-
-    try {
-      if (typeof picker.showPicker === "function") {
-        picker.showPicker();
-      } else {
-        picker.click();
-      }
-    } catch {
-      picker.click();
-    }
+  function closePicker(restoreFocus = false) {
+    setPickerOpen(false);
+    if (restoreFocus) pickerButtonRef.current?.focus();
   }
 
   return (
@@ -123,7 +123,7 @@ export function ItalianDateInput({
       <label className="ns-field-label" htmlFor={inputId}>
         {label}
       </label>
-      <div className="ns-date-input">
+      <div className="ns-date-input" ref={anchorRef}>
         <input
           className="ns-input ns-date-input__text"
           id={inputId}
@@ -148,6 +148,11 @@ export function ItalianDateInput({
           }}
           onBlur={commitDraft}
           onKeyDown={(event) => {
+            if (event.key === "ArrowDown") {
+              event.preventDefault();
+              event.currentTarget.blur();
+              setPickerOpen(true);
+            }
             if (event.key === "Enter") {
               event.preventDefault();
               event.currentTarget.blur();
@@ -164,27 +169,32 @@ export function ItalianDateInput({
           className="ns-date-input__picker"
           type="button"
           aria-label={`Apri calendario per ${label}`}
-          onClick={openPicker}
+          aria-haspopup="dialog"
+          aria-expanded={pickerOpen}
+          aria-controls={pickerOpen ? pickerId : undefined}
+          onClick={() => setPickerOpen((current) => !current)}
         >
           <FontAwesomeIcon icon={faCalendarDays} aria-hidden="true" />
         </button>
-        <input
-          ref={pickerRef}
-          className="ns-visually-hidden"
-          type="date"
-          tabIndex={-1}
-          aria-hidden="true"
-          value={value}
-          min={min}
-          max={max}
-          onChange={(event) => {
-            setDraft(formatIsoDate(event.target.value));
-            setEditing(false);
-            setValidation(null);
-            onChange(event.target.value);
-            pickerButtonRef.current?.focus();
-          }}
-        />
+        {pickerOpen ? (
+          <ItalianDatePicker
+            id={pickerId}
+            label={label}
+            value={value}
+            min={min}
+            max={max}
+            anchorRef={anchorRef}
+            triggerRef={pickerButtonRef}
+            onDismiss={closePicker}
+            onSelect={(date) => {
+              setDraft(formatIsoDate(date));
+              setEditing(false);
+              setValidation(null);
+              onChange(date);
+              closePicker(true);
+            }}
+          />
+        ) : null}
       </div>
       {error ? (
         <p className="ns-field-message ns-field-message--error" id={errorId} role="alert">

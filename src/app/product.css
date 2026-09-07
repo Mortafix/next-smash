@@ -366,6 +366,177 @@
   height: 0.9rem;
 }
 
+.ns-date-input__picker[aria-expanded="true"] {
+  background: var(--ns-ball);
+}
+
+.ns-date-picker {
+  position: fixed;
+  z-index: 100;
+  width: min(22rem, calc(100vw - 1rem));
+  max-height: calc(100dvh - 1rem);
+  padding: var(--ns-space-2);
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: var(--ns-border-control) solid var(--ns-ink);
+  border-radius: var(--ns-radius-control);
+  background: var(--ns-surface);
+  color: var(--ns-ink);
+  box-shadow: var(--ns-shadow-hard);
+  scrollbar-color: var(--ns-court) var(--ns-surface);
+  font-variant-numeric: tabular-nums;
+}
+
+.ns-date-picker__header,
+.ns-date-picker__navigation,
+.ns-date-picker__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ns-space-2);
+}
+
+.ns-date-picker__header {
+  padding-inline-start: var(--ns-space-2);
+  border-bottom: 1px solid var(--ns-ink);
+}
+
+.ns-date-picker__header strong {
+  font-size: 0.875rem;
+  font-weight: 750;
+}
+
+.ns-date-picker__navigation {
+  margin-block: var(--ns-space-2) var(--ns-space-1);
+}
+
+.ns-date-picker__navigation h3 {
+  margin: 0;
+  font-family: var(--ns-font-display);
+  font-size: 1.25rem;
+  font-weight: var(--ns-font-display-weight);
+  text-transform: capitalize;
+}
+
+.ns-date-picker button {
+  border: 2px solid transparent;
+  border-radius: var(--ns-radius-control);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.ns-date-picker button:hover:not(:disabled) {
+  background: var(--ns-surface-blue);
+}
+
+.ns-date-picker button:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline-offset: -3px;
+}
+
+.ns-date-picker button:disabled {
+  color: var(--ns-disabled-text);
+  cursor: not-allowed;
+}
+
+.ns-date-picker__icon {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 2.75rem;
+  place-items: center;
+}
+
+.ns-date-picker__icon svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.ns-date-picker__grid {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.ns-date-picker__grid th {
+  padding-block: var(--ns-space-1) var(--ns-space-2);
+  color: var(--ns-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.ns-date-picker__grid abbr {
+  text-decoration: none;
+}
+
+.ns-date-picker__grid td {
+  padding: 1px;
+}
+
+.ns-date-picker__day {
+  position: relative;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: var(--ns-space-1) 0;
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.ns-date-picker__day[data-outside-month] {
+  color: var(--ns-text-muted);
+}
+
+.ns-date-picker__day:disabled {
+  background: var(--ns-disabled-bg);
+  text-decoration: line-through;
+}
+
+.ns-date-picker__day[aria-current="date"]::after {
+  position: absolute;
+  bottom: 3px;
+  left: calc(50% - 2px);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  content: "";
+}
+
+.ns-date-picker__day[data-selected] {
+  border-color: var(--ns-ink);
+  background: var(--ns-ball);
+  color: var(--ns-ink);
+  font-weight: 850;
+}
+
+.ns-date-picker__day[data-selected]:hover:not(:disabled) {
+  background: var(--ns-ball-hover);
+}
+
+.ns-date-picker__actions {
+  margin-block-start: var(--ns-space-2);
+  padding-block-start: var(--ns-space-2);
+  border-top: 1px solid var(--ns-ink);
+}
+
+.ns-date-picker__actions button {
+  min-height: 2.75rem;
+  padding: var(--ns-space-2) var(--ns-space-3);
+  font-size: 0.875rem;
+  font-weight: 750;
+}
+
+.ns-date-picker__actions button:last-child {
+  color: var(--ns-danger);
+}
+
+.ns-date-picker__actions button:last-child:hover {
+  background: var(--ns-danger-bg);
+}
+
 .ns-field-message {
   margin: 0;
   color: var(--ns-text-muted);

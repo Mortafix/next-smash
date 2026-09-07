@@ -801,11 +801,14 @@ test("i filtri aperti non creano overflow sui viewport desktop", async ({ page }
     const filters = page.locator(".ns-filters");
     const weekendWidths = await filters
       .locator(".ns-choice-chip--standalone")
-      .evaluate((element) => ({
+      .evaluateAll((elements) => elements.map((element) => ({
         chip: element.getBoundingClientRect().width,
         group: element.parentElement?.getBoundingClientRect().width ?? 0,
-      }));
-    expect(Math.abs(weekendWidths.chip - weekendWidths.group)).toBeLessThanOrEqual(1);
+      })));
+    expect(weekendWidths).toHaveLength(2);
+    for (const { chip, group } of weekendWidths) {
+      expect(Math.abs(chip - group)).toBeLessThanOrEqual(1);
+    }
 
     const fitpRows = await filters
       .getByRole("group", { name: "Fascia FITP" })

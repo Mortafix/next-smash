@@ -299,6 +299,8 @@ fisico senza compromettere scansione, prevedibilità o accessibilità.
 - **Style:** fondo Bianco Circolo, bordo da 2px, raggio 0.5rem e altezza minima 2.75rem.
 - **Focus:** anello Blu Campo Pressato da 3px con offset 3px.
 - **Error / Disabled:** testo esplicito con Rosso Stop oppure coppia Cemento/Ardesia Disattivata.
+- **Date:** scrittura `gg/mm/aaaa` e calendario personalizzato non modale, ancorato al campo e contenuto nel viewport. Mesi e giorni in italiano, settimana da lunedì, selezione Giallo Pallina e giorni fuori intervallo disabilitati. Frecce per i giorni, Pagina su/giù per i mesi, Esc per chiudere; il focus ritorna al campo di origine.
+- **Scorciatoie date:** «Questo weekend» e «Prossimo weekend» sono chip a larghezza piena e selezionano sabato e domenica della settimana corrente o successiva; la domenica appartiene ancora al weekend corrente.
 
 ### Navigation
 

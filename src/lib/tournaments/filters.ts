@@ -180,11 +180,12 @@ function localIsoDate(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-export function weekendRange(reference = new Date()) {
+export function weekendRange(reference = new Date(), weekOffset = 0) {
   const saturday = new Date(reference);
   saturday.setHours(12, 0, 0, 0);
-  const daysUntilSaturday = (6 - saturday.getDay() + 7) % 7;
-  saturday.setDate(saturday.getDate() + daysUntilSaturday);
+  // Sunday still belongs to this weekend, not the following one.
+  const daysUntilSaturday = saturday.getDay() === 0 ? -1 : 6 - saturday.getDay();
+  saturday.setDate(saturday.getDate() + daysUntilSaturday + weekOffset * 7);
   const sunday = new Date(saturday);
   sunday.setDate(saturday.getDate() + 1);
 
