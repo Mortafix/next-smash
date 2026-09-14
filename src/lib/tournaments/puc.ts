@@ -350,6 +350,75 @@ function assertCompletePage(
   return { declaredTotal: page.record, rows: page.competizioni };
 }
 
+async function fetchProvinceSnapshot(
+  source: TournamentSource,
+  options: Required<FetchOptions>,
+  startDate: Date,
+  regionId: number,
+  provinceId: number,
+  firstPage: z.infer<typeof pucEnvelopeSchema>,
+): Promise<PucShard> {
+  const label = `${source}, regione ${regionId}, provincia ${provinceId}`;
+  const rows: unknown[] = [];
+  let page = firstPage;
+  let cursor = startDate;
+
+  while (true) {
+    const expectedRows = Math.min(page.record, MAX_RESULTS_PER_REQUEST);
+    if (page.competizioni.length !== expectedRows) {
+      throw new Error(
+        `Snapshot PUC incompleto per ${label}: attesi ${expectedRows} di ${page.record}, ricevuti ${page.competizioni.length}`,
+      );
+    }
+
+    const dates = page.competizioni.map(
+      (row) => normalizePucRow(row, source).startDate,
+    );
+    let previousDate = toIsoDate(toItalianDate(cursor));
+    for (const date of dates) {
+      if (!previousDate || date < previousDate) {
+        throw new Error(`Date PUC non ordinate o fuori intervallo per ${label}`);
+      }
+      previousDate = date;
+    }
+
+    if (page.record <= MAX_RESULTS_PER_REQUEST) {
+      rows.push(...page.competizioni);
+      return { declaredTotal: firstPage.record, rows };
+    }
+
+    // The last date may be truncated. Keep only earlier dates and request that
+    // entire day again, with no end-date filter (which would exclude long events).
+    const boundary = dates[dates.length - 1];
+    const prefixLength = dates.findIndex((date) => date === boundary);
+    if (prefixLength === 0) {
+      throw new Error(
+        `Lo shard PUC ${label} contiene almeno ${MAX_RESULTS_PER_REQUEST} risultati il ${boundary}: impossibile avanzare per data`,
+      );
+    }
+
+    cursor = new Date(`${boundary}T12:00:00Z`);
+    const nextPage = await requestPage(
+      source,
+      options,
+      cursor,
+      regionId,
+      provinceId,
+    );
+    if (nextPage === null) {
+      throw new Error(`PUC ha restituito un body vuoto per ${label} dal ${boundary}`);
+    }
+    if (prefixLength + nextPage.record !== page.record) {
+      throw new Error(
+        `Shard temporali PUC incompleti per ${label} dal ${boundary}: dichiarati ${page.record}, ricostruiti ${prefixLength + nextPage.record}`,
+      );
+    }
+
+    rows.push(...page.competizioni.slice(0, prefixLength));
+    page = nextPage;
+  }
+}
+
 async function fetchTerritorySnapshot(
   source: TournamentSource,
   options: Required<FetchOptions>,
@@ -402,10 +471,19 @@ async function fetchTerritorySnapshot(
       }
 
       provinceShards.push(
-        assertCompletePage(
-          provincePage,
-          `${source}, regione ${regionId}, provincia ${provinceId}`,
-        ),
+        provincePage.record <= MAX_RESULTS_PER_REQUEST
+          ? assertCompletePage(
+              provincePage,
+              `${source}, regione ${regionId}, provincia ${provinceId}`,
+            )
+          : await fetchProvinceSnapshot(
+              source,
+              options,
+              startDate,
+              regionId,
+              provinceId,
+              provincePage,
+            ),
       );
     }
 
@@ -482,6 +560,12 @@ export async function fetchPucTournaments(
       `Scartate ${rowErrors.length}/${rows.length} righe ${source}: ${rowErrors
         .slice(0, 5)
         .join("; ")}`,
+    );
+  }
+
+  if (tournaments.size !== declaredTotal) {
+    throw new Error(
+      `Identificativi PUC duplicati per ${source}: dichiarati ${declaredTotal}, unici ${tournaments.size}`,
     );
   }
 

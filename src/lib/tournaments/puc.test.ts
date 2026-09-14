@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { toIsoDate, toItalianDate } from "@/lib/dates";
 import {
   fetchPucTournaments,
   normalizePucRow,
@@ -42,6 +43,37 @@ const fixedOptions = {
   startDate: new Date(2026, 8, 3, 12),
   endDate: new Date(2027, 8, 3, 12),
 };
+
+function provincialRows(count: number, perDay = 1) {
+  return Array.from({ length: count }, (_, index) => {
+    const date = toItalianDate(
+      new Date(2026, 8, 5 + Math.floor(index / perDay), 12),
+    );
+    return { ...pucRow(index + 1, 2), data_inizio: date, data_fine: date };
+  });
+}
+
+function provinceFetch(rows: ReturnType<typeof provincialRows>) {
+  return vi.fn(async (_url: unknown, init?: RequestInit) => {
+    const payload = JSON.parse(String(init?.body));
+    expect(payload).toMatchObject({
+      tipo_competizione: "2",
+      data_fine: null,
+      rowstoskip: 0,
+      fetchrows: 100,
+    });
+    if (
+      (payload.id_regione !== null && payload.id_regione !== 1) ||
+      (payload.id_provincia !== null && payload.id_provincia !== 201)
+    ) {
+      return envelope([]);
+    }
+    const matching = rows.filter(
+      (row) => toIsoDate(row.data_inizio)! >= toIsoDate(payload.data_inizio)!,
+    );
+    return envelope(matching.slice(0, 100), matching.length);
+  });
+}
 
 describe("normalizePucRow", () => {
   it("normalizza un torneo FITP con più gare", () => {
@@ -139,6 +171,119 @@ describe("fetchPucTournaments", () => {
         fetchImplementation,
       }),
     ).rejects.toThrow(/Snapshot PUC incompleto/);
+  });
+
+  it.each([102, 260])(
+    "recupera tutti i %i tornei di una provincia oltre il cap",
+    async (count) => {
+      const rows = provincialRows(count, 3);
+      const fetchMock = provinceFetch(rows);
+      const result = await fetchPucTournaments("tpra", {
+        ...fixedOptions,
+        fetchImplementation: fetchMock as typeof fetch,
+      });
+
+      expect(result.declaredTotal).toBe(count);
+      expect(result.tournaments.map((tournament) => tournament.sourceId)).toEqual(
+        rows.map((row) => String(row.id_torneo_digital)),
+      );
+    },
+  );
+
+  it("include tutta la data di confine e i tornei che finiscono dopo di essa", async () => {
+    const rows = provincialRows(105, 3);
+    rows[0].data_fine = "31/12/2026";
+    const fetchMock = provinceFetch(rows);
+    const result = await fetchPucTournaments("tpra", {
+      ...fixedOptions,
+      fetchImplementation: fetchMock as typeof fetch,
+    });
+
+    expect(result.tournaments).toHaveLength(105);
+    expect(result.tournaments[0].endDate).toBe("2026-12-31");
+    const continuation = fetchMock.mock.calls
+      .map((call) => JSON.parse(String(call[1]?.body)))
+      .find((payload) => payload.data_inizio === rows[99].data_inizio);
+    expect(continuation).toMatchObject({ id_regione: 1, id_provincia: 201 });
+    expect(
+      result.tournaments.filter(
+        (tournament) => tournament.startDate === toIsoDate(rows[99].data_inizio),
+      ),
+    ).toHaveLength(3);
+  });
+
+  it.each([
+    {
+      name: "totale cambiato",
+      response: () => envelope(provincialRows(2), 2),
+      error: /Shard temporali PUC incompleti/,
+    },
+    {
+      name: "pagina corta",
+      response: () => envelope([], 3),
+      error: /Snapshot PUC incompleto/,
+    },
+    {
+      name: "body vuoto",
+      response: () => mockResponse(""),
+      error: /body vuoto/,
+    },
+    {
+      name: "filtro ignorato",
+      response: () => envelope(provincialRows(102).slice(0, 100), 102),
+      error: /Shard temporali PUC incompleti/,
+    },
+    {
+      name: "date fuori intervallo",
+      response: () => envelope(provincialRows(3)),
+      error: /Date PUC non ordinate o fuori intervallo/,
+    },
+    {
+      name: "date non ordinate",
+      response: () => envelope(provincialRows(102).slice(99).reverse()),
+      error: /Date PUC non ordinate o fuori intervallo/,
+    },
+  ])("rifiuta una continuazione con $name", async ({ response, error }) => {
+    const rows = provincialRows(102);
+    const baseFetch = provinceFetch(rows);
+    const fetchMock = vi.fn(async (url, init) => {
+      const payload = JSON.parse(String(init?.body));
+      if (payload.data_inizio === rows[99].data_inizio) return response();
+      return baseFetch(url, init);
+    });
+
+    await expect(
+      fetchPucTournaments("tpra", {
+        ...fixedOptions,
+        fetchImplementation: fetchMock as typeof fetch,
+      }),
+    ).rejects.toThrow(error);
+  });
+
+  it("interrompe una provincia satura sulla stessa data senza saltare tornei", async () => {
+    const fetchMock = provinceFetch(provincialRows(101, 101));
+    await expect(
+      fetchPucTournaments("tpra", {
+        ...fixedOptions,
+        fetchImplementation: fetchMock as typeof fetch,
+      }),
+    ).rejects.toThrow(/impossibile avanzare per data/);
+    expect(
+      fetchMock.mock.calls.filter(
+        (call) => JSON.parse(String(call[1]?.body)).id_provincia === 201,
+      ),
+    ).toHaveLength(1);
+  });
+
+  it("rifiuta tornei duplicati anche quando il numero di righe coincide", async () => {
+    await expect(
+      fetchPucTournaments("tpra", {
+        ...fixedOptions,
+        fetchImplementation: vi.fn(
+          async () => envelope([pucRow(1, 2), pucRow(1, 2)]),
+        ) as typeof fetch,
+      }),
+    ).rejects.toThrow(/Identificativi PUC duplicati/);
   });
 
   it("rifiuta un body vuoto anche con HTTP 200", async () => {

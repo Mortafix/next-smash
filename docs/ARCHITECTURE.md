@@ -23,13 +23,28 @@ La paginazione PUC satura empiricamente `rowstoskip` a 100. NextSmash non la usa
 1. legge il totale nazionale della singola fonte;
 2. se supera 100, acquisisce e somma le 20 regioni;
 3. una regione oltre 100 viene suddivisa con gli identificativi provinciali FITP;
-4. ogni pagina deve contenere esattamente il numero dichiarato;
-5. i totali degli shard devono ricostruire quello del padre;
-6. body vuoti o totali mutati interrompono la pubblicazione dello snapshot.
+4. una provincia oltre 100 viene percorsa per data di inizio crescente: conserva
+   solo i risultati precedenti all’ultima data della pagina e riparte da quella
+   stessa data inclusa, così recupera tutti i tornei sul confine;
+5. ogni pagina deve contenere il numero dichiarato, fino al cap di 100;
+6. i totali degli shard devono ricostruire quello del padre, anche a ogni
+   avanzamento per data; gli identificativi finali devono essere tutti unici;
+7. pagine incomplete, totali mutati, date non ordinate o filtri ignorati
+   interrompono la pubblicazione dello snapshot. Se i primi 100 risultati di una
+   provincia ancora satura iniziano tutti nello stesso giorno, l’adapter si ferma
+   con un errore esplicito senza saltare quella data.
 
-Questa strategia evita anche di dividere per intervalli data: in PUC `data_fine`
-filtra la fine effettiva del torneo e potrebbe escludere gli eventi che attraversano
-il confine di una finestra.
+L’adapter mantiene sempre `data_fine: null`: in PUC quel filtro riguarda la fine
+effettiva del torneo e potrebbe escludere gli eventi che attraversano il confine
+di una finestra. La continuazione usa soltanto il limite inferiore `data_inizio`.
+Una risposta vuota viene ritentata: al livello nazionale o durante una continuazione
+è un errore; nei territori viene trattata come zero e accettata soltanto se la somma
+complessiva ricostruisce il totale del padre.
+
+Il 14 settembre 2026 la provincia FITP 201 (Torino, regione 1) dichiarava 102 tornei
+TPRA dal 14 agosto: 100 nella prima pagina. Ripartendo dal 13 ottobre, ultima data
+restituita, PUC ha fornito 3 tornei: uno già sul confine e i 2 mancanti. I 99
+precedenti più i 3 della continuazione ricostruiscono il totale di 102.
 
 ## Modello dati
 
