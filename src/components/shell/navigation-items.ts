@@ -1,7 +1,7 @@
 export const navigationItems = [
   { href: "/tornei", label: "Tornei", icon: "list" },
   { href: "/calendario", label: "Calendario", icon: "calendar" },
-  { href: "/preferenze", label: "Preferenze", icon: "preferences" },
+  { href: "/profilo", label: "Profilo", icon: "profile" },
 ] as const;
 
 export type NavigationIconName = (typeof navigationItems)[number]["icon"];

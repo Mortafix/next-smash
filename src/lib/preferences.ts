@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import {
   defaultTournamentFilters,
+  normalizeItalianRegions,
   type TournamentFilters,
 } from "@/lib/tournaments/filters";
 
@@ -14,19 +15,26 @@ const originSchema = z.object({
   longitude: z.number().finite(),
 });
 
-const filtersSchema = z.object({
+const filtersSchema = z.preprocess((value) => {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return value;
+  const filters = value as Record<string, unknown>;
+  const regions = filters.regions === undefined
+    ? typeof filters.region === "string" ? [filters.region] : []
+    : filters.regions;
+  return { ...filters, regions };
+}, z.object({
   query: z.string(),
   source: z.enum(["all", "fitp", "tpra"]),
   gender: z.enum(["all", "male", "female", "mixed", "open", "unknown"]),
   rankCategory: z.enum(["all", "1", "2", "3", "4"]),
   tpraLevel: z.enum(["all", "entry", "expert"]),
-  region: z.string(),
+  regions: z.array(z.string()).default([]),
   provinceCode: z.string(),
   dateFrom: z.string(),
   dateTo: z.string(),
   sort: z.enum(["date", "distance"]),
   origin: originSchema.nullable(),
-});
+}).transform((filters) => ({ ...filters, regions: normalizeItalianRegions(filters.regions) })));
 
 const savedSearchSchema = z.object({
   id: z.string(),

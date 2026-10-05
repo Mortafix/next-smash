@@ -10,6 +10,11 @@ import {
   resetPreferences,
   writePreferences,
 } from "@/lib/preferences";
+import { defaultTournamentFilters, regionsForTournamentZone } from "@/lib/tournaments/filters";
+
+function filtersWithoutRegions() {
+  return Object.fromEntries(Object.entries(defaultTournamentFilters).filter(([key]) => key !== "regions"));
+}
 
 describe("preferenze browser", () => {
   beforeEach(() => {
@@ -31,7 +36,7 @@ describe("preferenze browser", () => {
 
   it("distingue storage vuoto, valido e corrotto", () => {
     const preferences = emptyPreferences();
-    preferences.defaults.region = "Lombardia";
+    preferences.defaults.regions = ["Lombardia"];
 
     expect(inspectPreferences(null)).toEqual({
       status: "empty",
@@ -55,13 +60,55 @@ describe("preferenze browser", () => {
 
   it("salva e rilegge filtri e ricerche solo nel browser", () => {
     const preferences = emptyPreferences();
-    preferences.defaults.region = "Lombardia";
+    preferences.defaults.regions = ["Lombardia"];
     writePreferences(preferences);
 
-    expect(readPreferences().defaults.region).toBe("Lombardia");
+    expect(readPreferences().defaults.regions).toEqual(["Lombardia"]);
     expect(window.localStorage.getItem(preferencesStorageKey)).toContain(
       "Lombardia",
     );
+  });
+
+  it("migra regioni singole da filtri e ricerche già salvati nel browser", () => {
+    const legacyFilters = filtersWithoutRegions();
+    const stored = {
+      version: 1,
+      defaults: { ...legacyFilters, region: "Valle d'Aosta/Vallée d'Aoste" },
+      lastFilters: { ...legacyFilters, region: "Trentino-Alto Adige/Südtirol", provinceCode: "TN" },
+      savedSearches: [{
+        id: "prima-ricerca", name: "Weekend Lombardia", createdAt: "2026-09-01T12:00:00.000Z",
+        filters: { ...legacyFilters, region: "Lombardia", dateFrom: "2026-10-09" },
+      }],
+    };
+    const inspected = inspectPreferences(JSON.stringify(stored));
+    expect(inspected.status).toBe("ready");
+    expect(inspected.preferences.defaults.regions).toEqual(["Valle d’Aosta"]);
+    expect(inspected.preferences.lastFilters).toMatchObject({ regions: ["Trentino-Alto Adige"], provinceCode: "TN" });
+    expect(inspected.preferences.savedSearches[0]).toMatchObject({
+      id: "prima-ricerca", name: "Weekend Lombardia",
+      filters: { regions: ["Lombardia"], dateFrom: "2026-10-09" },
+    });
+    expect(inspected.preferences.lastFilters).not.toHaveProperty("region");
+    window.localStorage.setItem(preferencesStorageKey, JSON.stringify(stored));
+    expect(writePreferences(inspected.preferences)).toBe(true);
+    expect(readPreferences().savedSearches[0].filters.regions).toEqual(["Lombardia"]);
+  });
+
+  it("usa una selezione vuota se il nuovo campo manca e non perde le ricerche", () => {
+    const filtersWithoutRegion = filtersWithoutRegions();
+    const stored = { ...emptyPreferences(), lastFilters: filtersWithoutRegion };
+    expect(inspectPreferences(JSON.stringify(stored))).toMatchObject({
+      status: "ready", preferences: { lastFilters: { regions: [] } },
+    });
+  });
+
+  it("preserva le zone salvate e dà precedenza alle regioni nuove rispetto al campo precedente", () => {
+    const stored = emptyPreferences();
+    stored.lastFilters.regions = regionsForTournamentZone("centro");
+    const parsed = parsePreferences(JSON.stringify({
+      ...stored, lastFilters: { ...stored.lastFilters, region: "Lombardia" },
+    }));
+    expect(parsed.lastFilters.regions).toEqual(["Lazio", "Marche", "Toscana", "Umbria"]);
   });
 
   it("segnala il fallimento senza notificare un cambiamento inesistente", () => {

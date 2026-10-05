@@ -91,7 +91,7 @@ describe("VisitCounter", () => {
   });
 
   it("evita POST concorrenti e può riprovare dopo l’abort", async () => {
-    navigation.pathname = "/preferenze";
+    navigation.pathname = "/profilo";
     fetchMock.mockImplementation(abortableRequest());
 
     const firstRender = render(<VisitCounter />);
@@ -105,13 +105,13 @@ describe("VisitCounter", () => {
 
     firstRender.unmount();
     secondRender.unmount();
-    expect(window.sessionStorage.getItem("nextsmash:view:/preferenze")).toBeNull();
+    expect(window.sessionStorage.getItem("nextsmash:view:/profilo")).toBeNull();
 
     fetchMock.mockResolvedValueOnce(response(true, 3));
     render(<VisitCounter />);
 
     expect(await screen.findByText("3 visite")).toBeVisible();
     expect(fetchMock.mock.calls.at(-1)?.[1]?.method).toBe("POST");
-    expect(window.sessionStorage.getItem("nextsmash:view:/preferenze")).toBe("1");
+    expect(window.sessionStorage.getItem("nextsmash:view:/profilo")).toBe("1");
   });
 });

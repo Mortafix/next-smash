@@ -6,7 +6,7 @@ import { getDatabase } from "@/db/client";
 import { pageViews } from "@/db/schema";
 
 const pageViewSchema = z.object({
-  path: z.enum(["/tornei", "/calendario", "/preferenze"]),
+  path: z.enum(["/tornei", "/calendario", "/profilo"]),
 });
 
 function currentDay() {
@@ -66,4 +66,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ count: null }, { status: 503 });
   }
 }
-

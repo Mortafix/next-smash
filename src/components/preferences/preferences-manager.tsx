@@ -11,6 +11,9 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { usePreferencesStoreState } from "@/hooks/use-preferences-store";
+import { useSavedTournamentsStoreState } from "@/hooks/use-saved-tournaments-store";
+import { TournamentCard } from "@/components/tournaments/tournament-card";
+import { TournamentDetailDialog } from "@/components/tournaments/tournament-detail-dialog";
 import {
   resetPreferences,
   type SavedSearch,
@@ -18,9 +21,11 @@ import {
   writePreferences,
 } from "@/lib/preferences";
 import {
-  defaultTournamentFilters,
   describeFilters,
+  type TournamentWithDistance,
 } from "@/lib/tournaments/filters";
+import { resetSavedTournaments, resolveSavedTournaments } from "@/lib/saved-tournaments";
+import type { Tournament } from "@/lib/tournaments/types";
 
 type Feedback = {
   kind: "success" | "error";
@@ -34,13 +39,6 @@ type FocusTarget =
 
 const storageErrorMessage =
   "Non riesco a salvare su questo dispositivo. Controlla le impostazioni del browser e riprova: nessuna modifica è stata applicata.";
-
-function filtersMatch(
-  first: SavedSearch["filters"],
-  second: SavedSearch["filters"],
-) {
-  return JSON.stringify(first) === JSON.stringify(second);
-}
 
 function savedSearchCountLabel(count: number) {
   return count === 1 ? "1 ricerca salvata" : `${count} ricerche salvate`;
@@ -62,10 +60,39 @@ function FilterSummary({
   );
 }
 
-export function PreferencesManager() {
+export function PreferencesManager({
+  currentTournaments = [],
+  initialTournamentId = null,
+}: {
+  currentTournaments?: Tournament[];
+  initialTournamentId?: string | null;
+}) {
   const router = useRouter();
   const preferencesState = usePreferencesStoreState();
   const preferences = preferencesState.preferences;
+  const tournamentsState = useSavedTournamentsStoreState();
+  const savedTournaments = resolveSavedTournaments(
+    tournamentsState.tournaments,
+    currentTournaments,
+  );
+  const [openedTournament, setOpenedTournament] = useState<TournamentWithDistance | null>(null);
+  const [dismissedInitialTournamentId, setDismissedInitialTournamentId] = useState<string | null>(null);
+  const [initialTournamentSnapshot, setInitialTournamentSnapshot] = useState<Tournament | null>(null);
+  const initialTournament =
+    initialTournamentId && initialTournamentId !== dismissedInitialTournamentId
+      ? savedTournaments.find((item) => item.id === initialTournamentId) ?? null
+      : null;
+  if (initialTournament && initialTournamentSnapshot !== initialTournament) {
+    setInitialTournamentSnapshot(initialTournament);
+  }
+  const retainedInitialTournament = initialTournament ??
+    (initialTournamentSnapshot?.id === initialTournamentId &&
+    initialTournamentId !== dismissedInitialTournamentId ? initialTournamentSnapshot : null);
+  const selectedTournament = openedTournament ??
+    (retainedInitialTournament ? { ...retainedInitialTournament, distanceKm: null } : null);
+  const tournamentTriggerRef = useRef<HTMLAnchorElement | null>(null);
+  const savedTournamentsHeadingRef = useRef<HTMLHeadingElement>(null);
+  const [tournamentRecoveryError, setTournamentRecoveryError] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [renameError, setRenameError] = useState("");
@@ -81,8 +108,6 @@ export function PreferencesManager() {
   const undoButtonRef = useRef<HTMLButtonElement>(null);
   const savedHeadingRef = useRef<HTMLHeadingElement>(null);
 
-  const lastMatchesBase = filtersMatch(preferences.lastFilters, preferences.defaults);
-  const baseIsClear = filtersMatch(preferences.defaults, defaultTournamentFilters);
   const countLabel = savedSearchCountLabel(preferences.savedSearches.length);
   const storageBlocked =
     preferencesState.status === "corrupt" ||
@@ -126,6 +151,35 @@ export function PreferencesManager() {
     return true;
   }
 
+  function openTournament(tournamentId: string, trigger: HTMLAnchorElement) {
+    const tournament = savedTournaments.find((item) => item.id === tournamentId);
+    if (!tournament) return;
+    tournamentTriggerRef.current = trigger;
+    setOpenedTournament({ ...tournament, distanceKm: null });
+    const url = new URL(window.location.href);
+    url.searchParams.set("torneo", tournamentId);
+    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  }
+
+  function closeTournament() {
+    setOpenedTournament(null);
+    setDismissedInitialTournamentId(initialTournamentId);
+    const url = new URL(window.location.href);
+    url.searchParams.delete("torneo");
+    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+    window.requestAnimationFrame(() => {
+      const trigger = tournamentTriggerRef.current;
+      if (trigger?.isConnected) trigger.focus();
+      else savedTournamentsHeadingRef.current?.focus();
+      tournamentTriggerRef.current = null;
+    });
+  }
+
+  function restoreLocalTournaments() {
+    setTournamentRecoveryError("");
+    if (!resetSavedTournaments()) setTournamentRecoveryError(storageErrorMessage);
+  }
+
   function restoreLocalPreferences() {
     setFeedback(null);
     setRecoveryError("");
@@ -141,7 +195,7 @@ export function PreferencesManager() {
     setDeleted(null);
     setFeedback({
       kind: "success",
-      message: "I dati locali sono stati ripristinati ai valori iniziali.",
+      message: "I dati delle ricerche sono stati ripristinati ai valori iniziali.",
     });
     setFocusTarget({ kind: "saved-heading" });
   }
@@ -248,10 +302,9 @@ export function PreferencesManager() {
   return (
     <div className="ns-page-stack ns-preferences">
       <header>
-        <h1>Le mie ricerche</h1>
+        <h1>Profilo</h1>
         <p className="ns-preferences__intro">
-          Senza account: le ricerche e le basi salvate restano solo su questo
-          dispositivo.
+          I tuoi tornei e le tue ricerche restano salvati in questo browser.
         </p>
       </header>
 
@@ -263,9 +316,9 @@ export function PreferencesManager() {
         >
           <FontAwesomeIcon icon={faTriangleExclamation} aria-hidden="true" />
           <span>
-            <strong>Dati locali da ripristinare</strong>
+            <strong>Ricerche salvate da ripristinare</strong>
             <span>
-              Il contenuto salvato non è leggibile. Per evitare di sovrascriverlo,
+              Le ricerche salvate non sono leggibili. Per evitare di sovrascriverle,
               le modifiche restano bloccate finché non scegli di ripristinare i
               dati locali.
             </span>
@@ -275,7 +328,7 @@ export function PreferencesManager() {
                 type="button"
                 onClick={restoreLocalPreferences}
               >
-                Ripristina dati locali
+                Ripristina ricerche salvate
               </button>
             </span>
             {recoveryError ? <span>{recoveryError}</span> : null}
@@ -292,7 +345,7 @@ export function PreferencesManager() {
             <strong>Archiviazione locale non disponibile</strong>
             <span>
               Abilita l’archiviazione locale nelle impostazioni del browser, poi
-              ricarica la pagina. Finché resta disattivata, le preferenze non
+              ricarica la pagina. Finché resta disattivata, le ricerche non
               possono essere lette o salvate.
             </span>
           </span>
@@ -313,88 +366,69 @@ export function PreferencesManager() {
             <strong>
               {feedback.kind === "error"
                 ? "Salvataggio non riuscito"
-                : "Preferenze aggiornate"}
+                : "Ricerche aggiornate"}
             </strong>
             <span>{feedback.message}</span>
           </span>
         </div>
       ) : null}
 
-      <section className="ns-preference-section" aria-labelledby="defaults-heading">
-        <div className="ns-section-heading">
-          <h2 id="defaults-heading">Filtri di partenza</h2>
+      <section aria-labelledby="saved-tournaments-heading">
+        <div className="ns-saved-heading">
+          <h2 id="saved-tournaments-heading" ref={savedTournamentsHeadingRef} tabIndex={-1}>
+            Tornei salvati
+          </h2>
+          <span
+            className="ns-preferences__saved-count"
+            aria-label={savedTournaments.length === 1 ? "1 torneo salvato" : `${savedTournaments.length} tornei salvati`}
+          >
+            {savedTournaments.length}
+          </span>
         </div>
-        <div className="ns-preference-section__body">
-          <p>
-            Salva una base e riaprila nell’elenco quando vuoi tornare alla tua
-            ricerca abituale.
-          </p>
 
-          <div className="ns-preferences__filter-board">
-            <div className="ns-preferences__filter-slot ns-preferences__filter-slot--base">
-              <h3 className="ns-preferences__filter-label">Base salvata</h3>
-              <FilterSummary
-                search={preferences.defaults}
-                label="Riepilogo della base salvata"
-              />
-              <button
-                className="ns-button ns-button--secondary ns-preferences__slot-action"
-                type="button"
-                disabled={storageBlocked}
-                onClick={() => applyFilters(preferences.defaults)}
-              >
-                Apri questa base
-              </button>
-            </div>
-
-            <div className="ns-preferences__filter-slot ns-preferences__filter-slot--recent">
-              <h3 className="ns-preferences__filter-label">Ultimi filtri usati</h3>
-              <FilterSummary
-                search={preferences.lastFilters}
-                label="Riepilogo degli ultimi filtri usati"
-              />
-              <p className="ns-preferences__filter-state" id="recent-filter-state">
-                {lastMatchesBase
-                  ? "Coincidono già con la base salvata."
-                  : "Sono diversi dalla base salvata."}
-              </p>
-              <button
-                className="ns-button ns-button--primary ns-preferences__slot-action"
-                type="button"
-                disabled={lastMatchesBase || storageBlocked}
-                aria-describedby="recent-filter-state"
-                onClick={() =>
-                  commit(
-                    { ...preferences, defaults: preferences.lastFilters },
-                    "Gli ultimi filtri sono ora la tua base salvata.",
-                  )
-                }
-              >
-                Salva gli ultimi come base
-              </button>
-            </div>
+        {tournamentsState.status === "corrupt" ? (
+          <div className="ns-preferences__feedback ns-preferences__feedback--error" role="alert">
+            <FontAwesomeIcon icon={faTriangleExclamation} aria-hidden="true" />
+            <span>
+              <strong>Tornei salvati da ripristinare</strong>
+              <span>I tornei salvati non sono leggibili. Ripristina questa raccolta per ricominciare a salvare tornei; le ricerche salvate restano disponibili.</span>
+              <span className="ns-action-row">
+                <button className="ns-button ns-button--quiet" type="button" onClick={restoreLocalTournaments}>
+                  Ripristina tornei salvati
+                </button>
+              </span>
+              {tournamentRecoveryError ? <span>{tournamentRecoveryError}</span> : null}
+            </span>
           </div>
-
-          <div className="ns-preferences__utility-row">
-            <p id="reset-filter-state">
-              La base iniziale mostra tutti i tornei, senza filtri.
-            </p>
-            <button
-              className="ns-button ns-button--quiet"
-              type="button"
-              disabled={baseIsClear || storageBlocked}
-              aria-describedby="reset-filter-state"
-              onClick={() =>
-                commit(
-                  { ...preferences, defaults: { ...defaultTournamentFilters } },
-                  "La base è stata ripristinata su tutti i tornei.",
-                )
-              }
-            >
-              Ripristina tutti i tornei
+        ) : tournamentsState.status === "unavailable" ? (
+          <div className="ns-preferences__feedback ns-preferences__feedback--error" role="alert">
+            <FontAwesomeIcon icon={faTriangleExclamation} aria-hidden="true" />
+            <span>
+              <strong>Tornei salvati non disponibili</strong>
+              <span>Abilita l’archiviazione locale nelle impostazioni del browser, poi ricarica la pagina per ritrovare i tornei salvati.</span>
+            </span>
+          </div>
+        ) : savedTournaments.length === 0 ? (
+          <div className="ns-empty-state">
+            <FontAwesomeIcon className="ns-preferences__empty-icon" icon={faBookmark} aria-hidden="true" />
+            <h3>Nessun torneo salvato</h3>
+            <p>Apri i dettagli di un torneo e scegli “Salva” per ritrovarlo qui.</p>
+            <button className="ns-button ns-button--primary" type="button" onClick={() => router.push("/tornei")}>
+              Trova un torneo
             </button>
           </div>
-        </div>
+        ) : (
+          <div className="ns-tournament-list">
+            {savedTournaments.map((tournament) => (
+              <TournamentCard
+                key={tournament.id}
+                tournament={{ ...tournament, distanceKm: null }}
+                detailsHref={`/profilo?torneo=${encodeURIComponent(tournament.id)}`}
+                onOpenDetails={openTournament}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       <section aria-labelledby="saved-heading">
@@ -496,6 +530,7 @@ export function PreferencesManager() {
                           className="ns-button ns-button--primary"
                           type="button"
                           aria-label={`Usa la ricerca «${search.name}»`}
+                          disabled={storageBlocked}
                           onClick={() => applyFilters(search.filters)}
                         >
                           Usa questa ricerca
@@ -508,6 +543,7 @@ export function PreferencesManager() {
                           className="ns-button ns-button--quiet"
                           type="button"
                           aria-label={`Rinomina la ricerca «${search.name}»`}
+                          disabled={storageBlocked}
                           onClick={() => startRename(search)}
                         >
                           Rinomina
@@ -515,7 +551,7 @@ export function PreferencesManager() {
                         <button
                           className="ns-button ns-button--danger"
                           type="button"
-                          disabled={deleted !== null}
+                          disabled={deleted !== null || storageBlocked}
                           aria-label={`Elimina la ricerca «${search.name}»`}
                           onClick={() => removeSearch(search, index)}
                         >
@@ -553,6 +589,7 @@ export function PreferencesManager() {
           </span>
         </div>
       ) : null}
+      <TournamentDetailDialog tournament={selectedTournament} onClose={closeTournament} />
     </div>
   );
 }

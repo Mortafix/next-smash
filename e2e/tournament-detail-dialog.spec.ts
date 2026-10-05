@@ -29,11 +29,12 @@ async function mockRegistrationCounts(page: Page) {
 }
 
 test("apre, condivide e naviga il dettaglio del torneo", async ({
+  baseURL,
   context,
   page,
 }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"], {
-    origin: "http://localhost:3000",
+    origin: baseURL,
   });
   await mockRegistrationCounts(page);
   await page.goto("/tornei");
@@ -70,6 +71,26 @@ test("apre, condivide e naviga il dettaglio del torneo", async ({
   await expect(page).toHaveURL(/\/tornei\?torneo=/);
   await expect(page.locator("html")).toHaveCSS("overflow", "hidden");
 
+  const downloadButton = dialog.getByRole("button", { name: `Scarica l'immagine di ${title}` });
+  const shareButton = dialog.getByRole("button", { name: "Condividi", exact: true });
+  await expect(downloadButton).toHaveText("");
+  await expect(shareButton).toHaveText("");
+  await expect(dialog.getByRole("button", { name: "Salva", exact: true })).toBeVisible();
+  const actionColors = await dialog.locator(".ns-tournament-detail-dialog__actions").evaluate((actions) => {
+    const background = (selector: string) => {
+      const element = actions.querySelector(selector);
+      return element ? getComputedStyle(element).backgroundColor : "";
+    };
+    return {
+      download: background(".ns-tournament-detail-dialog__icon-action"),
+      save: background(".ns-tournament-detail-dialog__save-action"),
+      registration: background(".ns-tournament-detail-dialog__official-link"),
+    };
+  });
+  expect(actionColors.download).not.toBe(actionColors.save);
+  expect(actionColors.download).not.toBe(actionColors.registration);
+  expect(actionColors.save).not.toBe(actionColors.registration);
+
   const placement = await dialog.evaluate((element) => {
     const bounds = element.getBoundingClientRect();
     return {
@@ -90,15 +111,13 @@ test("apre, condivide e naviga il dettaglio del torneo", async ({
   ).toEqual([]);
 
   const imageDownload = page.waitForEvent("download");
-  await dialog
-    .getByRole("button", { name: `Scarica l'immagine di ${title}` })
-    .click();
+  await downloadButton.click();
   await expect(dialog.getByText("Immagine del torneo scaricata.")).toBeAttached();
   expect((await imageDownload).suggestedFilename()).toMatch(/^nextsmash-.+\.png$/);
 
-  await dialog.getByRole("button", { name: "Condividi" }).click();
+  await shareButton.click();
   await expect(dialog.getByRole("button", { name: "Link copiato" })).toBeVisible();
-  const expectedUrl = new URL(href ?? "/tornei", "http://localhost:3000").toString();
+  const expectedUrl = new URL(href ?? "/tornei", baseURL).toString();
   await expect
     .poll(() => page.evaluate(() => navigator.clipboard.readText()))
     .toBe(expectedUrl);

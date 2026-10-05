@@ -1,4 +1,5 @@
 import municipalityData from "@/data/municipalities.json";
+import { italianRegionsByIstatCode, normalizeItalianRegion } from "@/lib/locations/regions";
 
 type Municipality = {
   istatCode: string;
@@ -23,7 +24,11 @@ export type MunicipalityMatch = Pick<
   | "longitude"
 >;
 
-const municipalities = municipalityData.municipalities as Municipality[];
+const municipalities = (municipalityData.municipalities as Municipality[]).map((municipality) => ({
+  ...municipality,
+  regionName: normalizeItalianRegion(municipality.regionName) ??
+    italianRegionsByIstatCode[municipality.regionCode] ?? "",
+}));
 
 export function normalizePlaceName(value: string) {
   return value

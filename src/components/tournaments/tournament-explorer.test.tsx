@@ -29,7 +29,7 @@ vi.mock("@/components/tournaments/filter-panel", () => ({
       action: (current: typeof defaultTournamentFilters) => typeof defaultTournamentFilters,
     ) => void;
   }) => (
-    <div data-testid="filter-panel" data-region={filters.region}>
+    <div data-testid="filter-panel" data-region={filters.regions.join(",")}>
       <button
         type="button"
         onClick={() =>
@@ -131,7 +131,7 @@ describe("TournamentExplorer tournament deep-link", () => {
     const preferences = emptyPreferences();
     preferences.lastFilters = {
       ...defaultTournamentFilters,
-      region: "Lazio",
+      regions: ["Lazio"],
     };
     window.localStorage.setItem(
       preferencesStorageKey,
@@ -164,8 +164,8 @@ describe("TournamentExplorer tournament deep-link", () => {
     );
     expect(
       parsePreferences(window.localStorage.getItem(preferencesStorageKey)).lastFilters
-        .region,
-    ).toBe("Lazio");
+        .regions,
+    ).toEqual(["Lazio"]);
 
     await userEvent.click(screen.getByRole("button", { name: "Mostra TPRA" }));
 
@@ -173,7 +173,7 @@ describe("TournamentExplorer tournament deep-link", () => {
       window.localStorage.getItem(preferencesStorageKey),
     ).lastFilters;
     expect(persisted.source).toBe("tpra");
-    expect(persisted.region).toBe("");
+    expect(persisted.regions).toEqual([]);
   });
 
   it("apre localmente con un URL pulito, usa Back e restituisce il focus", async () => {

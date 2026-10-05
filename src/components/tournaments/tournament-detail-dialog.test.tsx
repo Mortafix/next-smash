@@ -13,6 +13,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TournamentDetailDialog } from "@/components/tournaments/tournament-detail-dialog";
 import type { TournamentWithDistance } from "@/lib/tournaments/filters";
 import type { TournamentRegistrationSummary } from "@/lib/tournaments/registration-types";
+import { savedTournamentsStorageKey } from "@/lib/saved-tournaments";
 
 vi.mock("html-to-image", () => ({ toBlob: vi.fn() }));
 
@@ -91,6 +92,18 @@ function successfulResponse(summary = registrationSummary()) {
 }
 
 beforeEach(() => {
+  const stored = new Map<string, string>();
+  Object.defineProperty(window, "localStorage", {
+    configurable: true,
+    value: {
+      getItem: (key: string) => stored.get(key) ?? null,
+      setItem: (key: string, value: string) => stored.set(key, value),
+      removeItem: (key: string) => stored.delete(key),
+      clear: () => stored.clear(),
+      key: (index: number) => [...stored.keys()][index] ?? null,
+      get length() { return stored.size; },
+    } satisfies Storage,
+  });
   fetchMock.mockReset();
   fetchMock.mockResolvedValue(successfulResponse());
   writeText.mockReset();
@@ -141,6 +154,27 @@ afterEach(() => {
 });
 
 describe("TournamentDetailDialog", () => {
+  it("salva e rimuove il torneo nel browser con uno stato riconoscibile", async () => {
+    const user = userEvent.setup();
+    const view = render(<TournamentDetailDialog tournament={tournament()} onClose={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: "Salva" }));
+    expect(screen.getByRole("button", { name: "Salvato" })).toHaveAttribute("aria-pressed", "true");
+    expect(window.localStorage.getItem(savedTournamentsStorageKey)).toContain("fitp:1073");
+    view.unmount();
+    render(<TournamentDetailDialog tournament={tournament()} onClose={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: "Salvato" }));
+    expect(screen.getByRole("button", { name: "Salva" })).toHaveAttribute("aria-pressed", "false");
+    expect(window.localStorage.getItem(savedTournamentsStorageKey)).not.toContain("fitp:1073");
+  });
+
+  it("se il salvataggio fallisce resta non salvato e spiega come riprovare", async () => {
+    vi.spyOn(window.localStorage, "setItem").mockImplementation(() => { throw new Error("quota exceeded"); });
+    render(<TournamentDetailDialog tournament={tournament()} onClose={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Salva" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("Non riusciamo a salvare in questo browser");
+    expect(screen.getByRole("button", { name: "Salva" })).toHaveAttribute("aria-pressed", "false");
+  });
+
   it("mostra i dettagli della card e mantiene separati i conteggi, incluso lo zero", async () => {
     render(<TournamentDetailDialog tournament={tournament()} onClose={vi.fn()} />);
 

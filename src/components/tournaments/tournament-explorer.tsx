@@ -39,6 +39,8 @@ import {
   describeFilters,
   distanceInKilometres,
   filterTournaments,
+  normalizeItalianRegions,
+  normalizeTournamentRegion,
   type TournamentFilters,
   type TournamentWithDistance,
 } from "@/lib/tournaments/filters";
@@ -95,9 +97,7 @@ export function TournamentExplorer({
 
   const regions = useMemo(
     () =>
-      [...new Set(snapshot.tournaments.map((item) => item.region).filter(Boolean))]
-        .filter((region): region is string => typeof region === "string")
-        .sort((left, right) => left.localeCompare(right, "it")),
+      normalizeItalianRegions(snapshot.tournaments.map(normalizeTournamentRegion)),
     [snapshot.tournaments],
   );
   const provinces = useMemo(() => {
@@ -109,7 +109,7 @@ export function TournamentExplorer({
         label: tournament.province
           ? `${tournament.province} (${tournament.provinceCode})`
           : tournament.provinceCode,
-        region: tournament.region ?? "",
+        region: normalizeTournamentRegion(tournament) ?? "",
       });
     }
     return [...values.values()].sort((left, right) =>
@@ -504,11 +504,11 @@ export function TournamentExplorer({
         <div className="ns-toast" role="status">
           <span className="ns-toast__message">
             <strong>Ricerca salvata</strong>
-            <span>«{savedSearchName}» è pronta nelle Preferenze.</span>
+            <span>«{savedSearchName}» è pronta nel Profilo.</span>
           </span>
           <span className="ns-toast__actions">
-            <Link href="/preferenze" onClick={() => setSavedSearchName("")}>
-              Vai alle Preferenze
+            <Link href="/profilo" onClick={() => setSavedSearchName("")}>
+              Vai al Profilo
             </Link>
             <button
               type="button"

@@ -19,6 +19,7 @@ import type { TournamentGender } from "@/lib/tournaments/types";
 type TournamentCardProps = {
   tournament: TournamentWithDistance;
   compact?: boolean;
+  detailsHref?: string;
   onOpenDetails?: (
     tournamentId: string,
     trigger: HTMLAnchorElement,
@@ -216,6 +217,7 @@ function tournamentDetailsHref(tournamentId: string) {
 export function TournamentCard({
   tournament,
   compact = false,
+  detailsHref,
   onOpenDetails,
 }: TournamentCardProps) {
   const genders = visibleGenders(tournament.genders);
@@ -281,7 +283,7 @@ export function TournamentCard({
           <h3 className="ns-tournament-card__title">
             <Link
               className="ns-tournament-card__title-link"
-              href={tournamentDetailsHref(tournament.id)}
+                href={detailsHref ?? tournamentDetailsHref(tournament.id)}
               aria-haspopup="dialog"
               onClick={handleTitleClick}
             >

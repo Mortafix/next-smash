@@ -6,6 +6,8 @@ import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import ExcelJS from "exceljs";
 import type { Feature, FeatureCollection, MultiPolygon, Polygon } from "geojson";
+import { municipalityCellText as cellText } from "./lib/municipality-cell";
+import { italianRegionsByIstatCode, normalizeItalianRegion } from "../src/lib/locations/regions";
 
 const municipalitiesUrl =
   "https://www.istat.it/storage/codici-unita-amministrative/Elenco-comuni-italiani.xlsx";
@@ -65,12 +67,6 @@ async function download(url: string): Promise<Download> {
   };
 }
 
-function cellText(row: ExcelJS.Row, column: number) {
-  const value = row.getCell(column).value;
-  if (value === null || value === undefined) return "";
-  return String(value).trim().replace(/\s+/g, " ");
-}
-
 async function parseMunicipalities(data: ArrayBuffer) {
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(data);
@@ -96,6 +92,10 @@ async function parseMunicipalities(data: ArrayBuffer) {
       throw new Error(`Riga anagrafica ISTAT non valida: ${rowNumber}`);
     }
 
+    const regionCode = cellText(row, 1).padStart(2, "0");
+    const regionName = normalizeItalianRegion(cellText(row, 11)) ?? italianRegionsByIstatCode[regionCode];
+    if (!regionName) throw new Error(`Regione ISTAT non valida alla riga ${rowNumber}`);
+
     municipalities.push({
       istatCode,
       name,
@@ -104,8 +104,8 @@ async function parseMunicipalities(data: ArrayBuffer) {
       ),
       provinceCode: cellText(row, 15).toUpperCase(),
       provinceName: cellText(row, 12),
-      regionCode: cellText(row, 1).padStart(2, "0"),
-      regionName: cellText(row, 11),
+      regionCode,
+      regionName,
     });
   });
 

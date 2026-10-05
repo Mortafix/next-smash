@@ -18,6 +18,8 @@ import {
   type StoredPreferences,
 } from "@/lib/preferences";
 import { defaultTournamentFilters } from "@/lib/tournaments/filters";
+import { savedTournamentsStorageKey } from "@/lib/saved-tournaments";
+import type { Tournament } from "@/lib/tournaments/types";
 
 const { routerPush } = vi.hoisted(() => ({ routerPush: vi.fn() }));
 
@@ -34,7 +36,7 @@ function savedSearch(id: string, name: string, region: string): SavedSearch {
   return {
     id,
     name,
-    filters: { ...defaultTournamentFilters, region },
+    filters: { ...defaultTournamentFilters, regions: [region] },
     createdAt: "2026-09-04T08:00:00.000Z",
   };
 }
@@ -45,6 +47,38 @@ function seedPreferences(preferences: StoredPreferences) {
 
 function storedPreferences() {
   return parsePreferences(values.get(preferencesStorageKey) ?? null);
+}
+
+function savedTournament(overrides: Partial<Tournament> = {}): Tournament {
+  return {
+    id: "fitp:one",
+    source: "fitp",
+    sourceId: "one",
+    title: "Open Milano",
+    startDate: "2026-10-10",
+    endDate: "2026-10-11",
+    venueName: "Padel Milano",
+    city: "Milano",
+    province: "Milano",
+    provinceCode: "MI",
+    region: "Lombardia",
+    latitude: 45.46,
+    longitude: 9.19,
+    locationPrecision: "municipality",
+    genders: ["male"],
+    competitionTypes: ["Doppio"],
+    rankCategories: ["3", "4"],
+    ageCategories: [],
+    tpraLevel: null,
+    registrationOnline: true,
+    officialUrl: "https://example.test/one",
+    sourceStatus: "Iscrizioni aperte",
+    ...overrides,
+  };
+}
+
+function seedTournaments(tournaments: Tournament[]) {
+  values.set(savedTournamentsStorageKey, JSON.stringify({ version: 1, tournaments }));
 }
 
 beforeEach(() => {
@@ -84,14 +118,113 @@ beforeEach(() => {
     configurable: true,
     value: (frame: number) => window.clearTimeout(frame),
   });
+  Object.defineProperty(HTMLDialogElement.prototype, "showModal", {
+    configurable: true,
+    value(this: HTMLDialogElement) { this.setAttribute("open", ""); },
+  });
+  Object.defineProperty(HTMLDialogElement.prototype, "close", {
+    configurable: true,
+    value(this: HTMLDialogElement) {
+      this.removeAttribute("open");
+      this.dispatchEvent(new Event("close"));
+    },
+  });
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({ source: "fitp", entries: [], fetchedAt: "2026-10-05T08:00:00Z" }),
+  }));
 });
 
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+  document.documentElement.style.overflow = "";
+  document.body.style.overflow = "";
+  window.history.replaceState(null, "", "/");
 });
 
 describe("PreferencesManager", () => {
+  it("apre nel profilo i dati attuali di un torneo salvato e restituisce il focus alla card", async () => {
+    const user = userEvent.setup();
+    window.history.replaceState(null, "", "/profilo");
+    seedTournaments([savedTournament()]);
+    render(<PreferencesManager currentTournaments={[savedTournament({ title: "Open Milano aggiornato" })]} />);
+
+    const link = screen.getByRole("link", { name: "Open Milano aggiornato" });
+    expect(link).toHaveAttribute("href", "/profilo?torneo=fitp%3Aone");
+    await user.click(link);
+
+    const dialog = screen.getByRole("dialog", { name: "Open Milano aggiornato" });
+    expect(dialog).toHaveAttribute("open");
+    expect(window.location.pathname).toBe("/profilo");
+    expect(window.location.search).toBe("?torneo=fitp%3Aone");
+    expect(routerPush).not.toHaveBeenCalled();
+
+    await user.click(within(dialog).getByRole("button", { name: "Chiudi dettagli di Open Milano aggiornato" }));
+    await waitFor(() => expect(link).toHaveFocus());
+    expect(window.location.pathname).toBe("/profilo");
+    expect(window.location.search).toBe("");
+  });
+
+  it("mantiene i dettagli dopo aver rimosso l’ultimo torneo e restituisce il focus alla sezione", async () => {
+    const user = userEvent.setup();
+    seedTournaments([savedTournament()]);
+    render(<PreferencesManager />);
+    await user.click(screen.getByRole("link", { name: "Open Milano" }));
+    const dialog = screen.getByRole("dialog", { name: "Open Milano" });
+
+    await user.click(within(dialog).getByRole("button", { name: "Salvato" }));
+
+    expect(screen.getByRole("heading", { name: "Nessun torneo salvato" })).toBeVisible();
+    expect(dialog).toHaveAttribute("open");
+    expect(within(dialog).getByRole("button", { name: "Salva" })).toBeEnabled();
+    await user.click(within(dialog).getByRole("button", { name: "Chiudi dettagli di Open Milano" }));
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Tornei salvati" })).toHaveFocus());
+  });
+
+  it("mantiene aperto anche un torneo raggiunto dal link del profilo dopo la rimozione", async () => {
+    const user = userEvent.setup();
+    window.history.replaceState(null, "", "/profilo?torneo=fitp%3Aone");
+    seedTournaments([savedTournament()]);
+    render(<PreferencesManager initialTournamentId="fitp:one" />);
+
+    const dialog = screen.getByRole("dialog", { name: "Open Milano" });
+    await user.click(within(dialog).getByRole("button", { name: "Salvato" }));
+    expect(dialog).toHaveAttribute("open");
+    expect(within(dialog).getByRole("button", { name: "Salva" })).toBeEnabled();
+
+    await user.click(within(dialog).getByRole("button", { name: "Chiudi dettagli di Open Milano" }));
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Tornei salvati" })).toHaveFocus());
+    expect(window.location.pathname).toBe("/profilo");
+    expect(window.location.search).toBe("");
+  });
+
+  it("conserva i tornei archiviati quando non ci sono più nella fonte corrente", () => {
+    seedTournaments([savedTournament()]);
+    render(<PreferencesManager currentTournaments={[]} />);
+    expect(screen.getByRole("link", { name: "Open Milano" })).toBeVisible();
+    expect(screen.getByLabelText("1 torneo salvato")).toBeInTheDocument();
+  });
+
+  it("ripristina i tornei corrotti senza eliminare le ricerche salvate", async () => {
+    const user = userEvent.setup();
+    const preferences = emptyPreferences();
+    preferences.savedSearches = [savedSearch("one", "Weekend Milano", "Lombardia")];
+    seedPreferences(preferences);
+    values.set(savedTournamentsStorageKey, "non-json");
+    render(<PreferencesManager />);
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Tornei salvati da ripristinare");
+    expect(screen.getByRole("button", { name: "Usa la ricerca «Weekend Milano»" })).toBeEnabled();
+    expect(values.get(savedTournamentsStorageKey)).toBe("non-json");
+    await user.click(screen.getByRole("button", { name: "Ripristina tornei salvati" }));
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Nessun torneo salvato" })).toBeVisible();
+    expect(storedPreferences().savedSearches[0].name).toBe("Weekend Milano");
+  });
+
   it("blocca le modifiche su dati corrotti e offre il ripristino esplicito", async () => {
     const user = userEvent.setup();
     values.set(preferencesStorageKey, "non-json");
@@ -99,16 +232,14 @@ describe("PreferencesManager", () => {
     render(<PreferencesManager />);
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Dati locali da ripristinare",
+      "Ricerche salvate da ripristinare",
     );
-    expect(
-      screen.getByRole("button", { name: "Apri questa base" }),
-    ).toBeDisabled();
+    expect(screen.queryByRole("heading", { name: "Filtri di partenza" })).not.toBeInTheDocument();
     expect(values.get(preferencesStorageKey)).toBe("non-json");
     expect(storageWrites).toHaveLength(0);
 
     await user.click(
-      screen.getByRole("button", { name: "Ripristina dati locali" }),
+      screen.getByRole("button", { name: "Ripristina ricerche salvate" }),
     );
 
     expect(await screen.findByRole("status")).toHaveTextContent(
@@ -129,14 +260,14 @@ describe("PreferencesManager", () => {
     storageShouldFail = true;
 
     await user.click(
-      screen.getByRole("button", { name: "Ripristina dati locali" }),
+      screen.getByRole("button", { name: "Ripristina ricerche salvate" }),
     );
 
     const alert = screen.getByRole("alert");
     expect(alert).toHaveTextContent("nessuna modifica è stata applicata");
     expect(values.get(preferencesStorageKey)).toBe("non-json");
     expect(
-      screen.getByRole("button", { name: "Ripristina dati locali" }),
+      screen.getByRole("button", { name: "Ripristina ricerche salvate" }),
     ).toBeEnabled();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
@@ -146,70 +277,46 @@ describe("PreferencesManager", () => {
 
     render(<PreferencesManager />);
 
-    const alert = await screen.findByRole("alert");
+    const [alert] = await screen.findAllByRole("alert");
     expect(alert).toHaveTextContent("Archiviazione locale non disponibile");
     expect(alert).toHaveTextContent(
       "Abilita l’archiviazione locale nelle impostazioni del browser",
     );
     expect(
-      screen.getByRole("button", { name: "Apri questa base" }),
-    ).toBeDisabled();
-    expect(
-      screen.queryByRole("button", { name: "Ripristina dati locali" }),
+      screen.queryByRole("button", { name: "Ripristina ricerche salvate" }),
     ).not.toBeInTheDocument();
     expect(storageWrites).toHaveLength(0);
   });
 
-  it("confronta la base con gli ultimi filtri e non salva i no-op", async () => {
-    const user = userEvent.setup();
+  it("mostra solo tornei e ricerche salvate senza modificare i dati delle vecchie basi", () => {
     const preferences = emptyPreferences();
-    preferences.lastFilters = {
-      ...defaultTournamentFilters,
-      region: "Lombardia",
-    };
+    preferences.lastFilters = { ...defaultTournamentFilters, regions: ["Lombardia"] };
+    preferences.defaults = { ...defaultTournamentFilters, regions: ["Lazio"] };
     seedPreferences(preferences);
 
     render(<PreferencesManager />);
-
-    expect(
-      screen.getByRole("list", { name: "Riepilogo della base salvata" }),
-    ).toHaveTextContent("Tutti i tornei");
-    expect(
-      screen.getByRole("list", { name: "Riepilogo degli ultimi filtri usati" }),
-    ).toHaveTextContent("Lombardia");
-
-    const saveButton = screen.getByRole("button", {
-      name: "Salva gli ultimi come base",
-    });
-    expect(saveButton).toBeEnabled();
-    await user.click(saveButton);
-
-    expect(storedPreferences().defaults.region).toBe("Lombardia");
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "Gli ultimi filtri sono ora la tua base salvata.",
-    );
-    expect(saveButton).toBeDisabled();
-
-    const writesAfterSave = storageWrites.length;
-    await user.click(saveButton);
-    expect(storageWrites).toHaveLength(writesAfterSave);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Profilo");
+    expect(screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent)).toEqual(["Tornei salvati", "Ricerche salvate"]);
+    expect(screen.queryByRole("heading", { name: "Filtri di partenza" })).not.toBeInTheDocument();
+    expect(storedPreferences()).toEqual(preferences);
+    expect(storageWrites).toHaveLength(0);
   });
 
   it("non apre l’elenco quando il browser rifiuta la scrittura", async () => {
     const user = userEvent.setup();
     const preferences = emptyPreferences();
-    preferences.defaults = { ...defaultTournamentFilters, region: "Lazio" };
+    preferences.savedSearches = [savedSearch("one", "Roma sera", "Lazio")];
     seedPreferences(preferences);
     render(<PreferencesManager />);
     storageShouldFail = true;
 
-    await user.click(screen.getByRole("button", { name: "Apri questa base" }));
+    await user.click(screen.getByRole("button", { name: "Usa la ricerca «Roma sera»" }));
 
     expect(routerPush).not.toHaveBeenCalled();
     expect(screen.getByRole("alert")).toHaveTextContent(
       "nessuna modifica è stata applicata",
     );
-    expect(storedPreferences().lastFilters.region).toBe("");
+    expect(storedPreferences().lastFilters.regions).toEqual([]);
   });
 
   it("valida la rinomina e restituisce il focus al controllo della card", async () => {

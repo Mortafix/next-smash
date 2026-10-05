@@ -34,7 +34,7 @@ const filterIcons: Record<ActiveTournamentFilterKey, IconDefinition> = {
   gender: faMarsAndVenus,
   rankCategory: faSignal,
   tpraLevel: faSignal,
-  region: faMapLocationDot,
+  regions: faMapLocationDot,
   provinceCode: faFlag,
   dateRange: faCalendarDays,
   origin: faLocationDot,

@@ -7,6 +7,11 @@ import {
   defaultTournamentFilters,
   distanceInKilometres,
   filterTournaments,
+  inferTournamentZone,
+  italianTournamentZones,
+  normalizeItalianRegion,
+  normalizeItalianRegions,
+  regionsForTournamentZone,
   weekendRange,
 } from "@/lib/tournaments/filters";
 import type { Tournament } from "@/lib/tournaments/types";
@@ -54,7 +59,7 @@ describe("filterTournaments", () => {
       filterTournaments([tournament()], {
         ...defaultTournamentFilters,
         gender: "male",
-        region: "Lombardia",
+        regions: ["Lombardia"],
       }),
     ).toHaveLength(1);
   });
@@ -95,6 +100,41 @@ describe("filterTournaments", () => {
 });
 
 describe("geografia e scorciatoie", () => {
+  it.each(italianTournamentZones)("include tutte e sole le regioni di $label", (zone) => {
+    const regionTournaments = italianTournamentZones.flatMap((option) => option.regions)
+      .map((region, index) => tournament({ id: `fitp:${index}`, region }));
+    const regions = regionsForTournamentZone(zone.value);
+    expect(filterTournaments(regionTournaments, { ...defaultTournamentFilters, regions })
+      .map((item) => item.region).sort()).toEqual([...zone.regions].sort());
+    expect(inferTournamentZone(regions)).toBe(zone.value);
+  });
+
+  it("aggiorna la zona completando tutte le regioni senza indicarla per scelte parziali o miste", () => {
+    expect(inferTournamentZone(["Toscana", "Umbria", "Marche"])).toBe("");
+    expect(inferTournamentZone(["Toscana", "Umbria", "Marche", "Lazio"])).toBe("centro");
+    expect(inferTournamentZone([...regionsForTournamentZone("centro"), "Lombardia"])).toBe("");
+    expect(regionsForTournamentZone("")).toEqual([]);
+  });
+
+  it("normalizza le denominazioni territoriali ufficiali e scarta valori non validi", () => {
+    expect(normalizeItalianRegions([
+      "Valle d'Aosta/Vallée d'Aoste", "Valle d’Aosta", "Trentino-Alto Adige/Südtirol",
+      "Friuli Venezia Giulia", "[object Object]", {}, null,
+    ])).toEqual(["Friuli-Venezia Giulia", "Trentino-Alto Adige", "Valle d’Aosta"]);
+    expect(normalizeItalianRegion("regione sconosciuta")).toBeNull();
+  });
+
+  it("trova alias ufficiali e tornei valdostani già memorizzati con regione corrotta", () => {
+    const tournaments = [
+      tournament({ id: "fitp:trentino", region: "Trentino-Alto Adige/Südtirol", provinceCode: "TN" }),
+      tournament({ id: "fitp:aosta", region: "[object Object]", provinceCode: "AO" }),
+      tournament({ id: "fitp:invalid", region: "[object Object]", provinceCode: "XX" }),
+    ];
+    expect(filterTournaments(tournaments, {
+      ...defaultTournamentFilters, regions: regionsForTournamentZone("nord"),
+    }).map((item) => item.id).sort()).toEqual(["fitp:aosta", "fitp:trentino"]);
+  });
+
   it("calcola una distanza plausibile Milano–Roma", () => {
     expect(
       distanceInKilometres(
@@ -132,14 +172,14 @@ describe("riepilogo filtri", () => {
     query: "Roma",
     dateFrom: "2026-09-05",
     dateTo: "2026-09-06",
-    region: "Lazio",
+    regions: ["Lazio"],
   };
 
   it("conta gruppi semantici e include la query", () => {
     expect(activeFilterCount(filters)).toBe(3);
     expect(activeTournamentFilters(filters)).toEqual([
       { key: "query", label: "Cerca “Roma”" },
-      { key: "region", label: "Lazio" },
+      { key: "regions", label: "Lazio" },
       {
         key: "dateRange",
         label: "Dal 5 set 2026 al 6 set 2026",
@@ -153,6 +193,16 @@ describe("riepilogo filtri", () => {
       dateFrom: "",
       dateTo: "",
     });
+  });
+
+  it("riassume una zona completa e rimuove anche la provincia collegata", () => {
+    const northern = { ...defaultTournamentFilters, regions: regionsForTournamentZone("nord"), provinceCode: "MI" };
+    expect(activeTournamentFilters(northern)).toEqual([
+      { key: "regions", label: "Zona Nord" },
+      { key: "provinceCode", label: "Provincia MI" },
+    ]);
+    expect(clearTournamentFilter(northern, "regions")).toMatchObject({ regions: [], provinceCode: "" });
+    expect(activeFilterCount({ ...defaultTournamentFilters, regions: ["Lombardia", "Piemonte"] })).toBe(1);
   });
 
   it("ripristina l’ordinamento per data quando rimuove l’origine", () => {

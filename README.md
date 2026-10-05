@@ -6,11 +6,11 @@ individuali di padel FITP e TPRA in Italia.
 ## Funzioni disponibili
 
 - elenco cronologico con ricerca e filtri per circuito, tipologia, fascia/livello,
-  regione, provincia e intervallo date;
+  zona d’Italia, regioni, provincia e intervallo date;
 - ordinamento per distanza, usando la posizione del browser oppure il centro del
   comune scelto;
-- calendario mensile con agenda giornaliera;
-- filtri predefiniti e ricerche salvate in `localStorage`;
+- calendario mensile con agenda giornaliera e dettagli aperti sul calendario;
+- Profilo con tornei e ricerche salvati in `localStorage`, senza account;
 - contatore aggregato delle visite, senza identificatori personali;
 - aggiornamento automatico all’apertura quando i dati hanno più di 12 ore, con
   conservazione dell’ultimo snapshot valido in caso di errore.
@@ -73,7 +73,7 @@ ISTAT pubblica una nuova versione.
 ## Struttura
 
 - `src/app`: pagine, route API e stili;
-- `src/components`: shell, elenco, calendario e preferenze;
+- `src/components`: shell, elenco, calendario e profilo;
 - `src/lib/tournaments`: adapter PUC, filtri, repository e sincronizzazione;
 - `src/lib/locations`: normalizzazione e ricerca comunale;
 - `src/db`: schema e client SQLite;

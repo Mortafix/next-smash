@@ -3,6 +3,7 @@
 import {
   faArrowUpRightFromSquare,
   faCalendarDays,
+  faBookmark,
   faCheck,
   faDownload,
   faLocationDot,
@@ -26,6 +27,8 @@ import {
 } from "react";
 
 import type { TournamentWithDistance } from "@/lib/tournaments/filters";
+import { useSavedTournamentsStoreState } from "@/hooks/use-saved-tournaments-store";
+import { removeSavedTournament, saveTournament } from "@/lib/saved-tournaments";
 import type {
   TournamentRegistrationEntry,
   TournamentRegistrationSummary,
@@ -56,6 +59,12 @@ type CopyResult = {
 type ImageExportResult = {
   tournamentId: string;
   status: "loading" | "success" | "error";
+};
+
+type SaveResult = {
+  tournamentId: string;
+  status: "success" | "error";
+  message: string;
 };
 
 const dateFormatter = new Intl.DateTimeFormat("it-IT", {
@@ -272,6 +281,8 @@ export function TournamentDetailDialog({
   const [copyResult, setCopyResult] = useState<CopyResult | null>(null);
   const [imageExportResult, setImageExportResult] =
     useState<ImageExportResult | null>(null);
+  const savedTournamentsState = useSavedTournamentsStoreState();
+  const [saveResult, setSaveResult] = useState<SaveResult | null>(null);
   const isOpen = tournament !== null;
   const tournamentId = tournament?.id ?? null;
   const tournamentSource = tournament?.source ?? null;
@@ -387,6 +398,21 @@ export function TournamentDetailDialog({
     setRegistrationAttempt((attempt) => attempt + 1);
   }
 
+  function toggleSavedTournament() {
+    if (!tournament) return;
+    const saved = savedTournamentsState.tournaments.some((item) => item.id === tournament.id);
+    const success = saved ? removeSavedTournament(tournament.id) : saveTournament(tournament);
+    setSaveResult({
+      tournamentId: tournament.id,
+      status: success ? "success" : "error",
+      message: success
+        ? saved ? "Torneo rimosso dai salvati." : "Torneo salvato nel Profilo."
+        : savedTournamentsState.status === "corrupt"
+          ? "I tornei salvati non sono leggibili. Apri il Profilo per ripristinare i dati locali, poi riprova."
+          : "Non riusciamo a salvare in questo browser. Controlla lo spazio disponibile e le impostazioni di archiviazione, poi riprova.",
+    });
+  }
+
   function handleDialogClick(event: ReactMouseEvent<HTMLDialogElement>) {
     if (event.target !== event.currentTarget) return;
     const bounds = event.currentTarget.getBoundingClientRect();
@@ -481,6 +507,8 @@ export function TournamentDetailDialog({
     copyResult?.tournamentId === tournamentId ? copyResult : null;
   const visibleImageExportResult =
     imageExportResult?.tournamentId === tournamentId ? imageExportResult : null;
+  const visibleSaveResult = saveResult?.tournamentId === tournamentId ? saveResult : null;
+  const isSaved = savedTournamentsState.tournaments.some((item) => item.id === tournamentId);
 
   return (
     <dialog
@@ -694,7 +722,7 @@ export function TournamentDetailDialog({
             <div className="ns-tournament-detail-dialog__actions">
               <div className="ns-tournament-detail-dialog__share-actions">
                 <button
-                  className="ns-button ns-button--primary ns-tournament-detail-dialog__download-action"
+                  className="ns-button ns-button--primary ns-tournament-detail-dialog__icon-action"
                   type="button"
                   aria-label={
                     visibleImageExportResult?.status === "loading"
@@ -713,8 +741,10 @@ export function TournamentDetailDialog({
                   />
                 </button>
                 <button
-                  className="ns-button ns-button--primary"
+                  className="ns-button ns-button--primary ns-tournament-detail-dialog__icon-action"
                   type="button"
+                  aria-label={visibleCopyResult?.status === "success" ? "Link copiato" : "Condividi"}
+                  title={visibleCopyResult?.status === "success" ? "Link copiato" : "Condividi torneo"}
                   onClick={() => void shareTournament()}
                 >
                   <FontAwesomeIcon
@@ -724,11 +754,18 @@ export function TournamentDetailDialog({
                     }
                     aria-hidden="true"
                   />
-                  {visibleCopyResult?.status === "success"
-                    ? "Link copiato"
-                    : "Condividi"}
                 </button>
               </div>
+              <button
+                className="ns-button ns-button--secondary ns-tournament-detail-dialog__save-action"
+                type="button"
+                aria-pressed={isSaved}
+                title={isSaved ? "Rimuovi dai tornei salvati" : "Salva nel Profilo"}
+                onClick={toggleSavedTournament}
+              >
+                <FontAwesomeIcon className="ns-button__icon" icon={isSaved ? faCheck : faBookmark} aria-hidden="true" />
+                {isSaved ? "Salvato" : "Salva"}
+              </button>
               <a
                 className="ns-button ns-button--secondary ns-tournament-detail-dialog__official-link"
                 href={tournament.officialUrl}
@@ -744,6 +781,12 @@ export function TournamentDetailDialog({
                 />
               </a>
             </div>
+
+            {visibleSaveResult?.status === "error" ? (
+              <p className="ns-tournament-detail-dialog__image-export-error" role="alert">
+                {visibleSaveResult.message}
+              </p>
+            ) : null}
 
             {visibleCopyResult?.status === "error" ? (
               <div className="ns-tournament-detail-dialog__share-error" role="alert">
@@ -766,6 +809,9 @@ export function TournamentDetailDialog({
               </p>
             ) : null}
 
+            <p className="ns-visually-hidden" aria-live="polite" aria-atomic="true">
+              {visibleSaveResult?.status === "success" ? visibleSaveResult.message : ""}
+            </p>
             <p className="ns-visually-hidden" aria-live="polite" aria-atomic="true">
               {visibleCopyResult?.status === "success"
                 ? "Link del torneo copiato negli appunti."

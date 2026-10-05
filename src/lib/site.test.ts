@@ -23,11 +23,11 @@ describe("site metadata", () => {
     expect(metadata.twitter).toMatchObject({ card: "summary_large_image" });
   });
 
-  it("esclude le preferenze dall'indicizzazione", () => {
+  it("esclude il profilo dall'indicizzazione", () => {
     const metadata = buildPageMetadata({
-      title: "Preferenze",
-      description: "Preferenze locali",
-      path: "/preferenze",
+      title: "Profilo",
+      description: "Tornei e ricerche salvati nel browser",
+      path: "/profilo",
       index: false,
     });
 

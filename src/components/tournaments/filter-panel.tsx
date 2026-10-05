@@ -23,6 +23,12 @@ import { usePreferencesStore } from "@/hooks/use-preferences-store";
 import {
   activeFilterCount,
   activeTournamentFilters,
+  inferTournamentZone,
+  italianRegions,
+  italianTournamentZones,
+  normalizeItalianRegion,
+  normalizeItalianRegions,
+  regionsForTournamentZone,
   weekendRange,
   type TournamentFilters,
 } from "@/lib/tournaments/filters";
@@ -141,8 +147,11 @@ export function FilterPanel({
   const fieldNamePrefix = useId();
   const preferences = usePreferencesStore();
   const count = activeFilterCount(filters);
-  const visibleProvinces = filters.region
-    ? provinces.filter((province) => province.region === filters.region)
+  const selectedRegions = normalizeItalianRegions(filters.regions);
+  const availableRegions = normalizeItalianRegions([...italianRegions, ...regions]);
+  const selectedZone = inferTournamentZone(selectedRegions);
+  const visibleProvinces = selectedRegions.length > 0
+    ? provinces.filter((province) => selectedRegions.includes(normalizeItalianRegion(province.region) ?? ""))
     : [];
   const referenceDate = new Date();
   const weekendPresets = [
@@ -157,7 +166,7 @@ export function FilterPanel({
   function applySavedFilters(name: string, savedFilters: TournamentFilters) {
     onChange({
       ...savedFilters,
-      provinceCode: savedFilters.region ? savedFilters.provinceCode : "",
+      provinceCode: savedFilters.regions.length > 0 ? savedFilters.provinceCode : "",
     });
     setAnnouncement(`Filtri «${name}» attivati.`);
     setSavedExpanded(false);
@@ -308,24 +317,62 @@ export function FilterPanel({
             <fieldset className="ns-filter-group">
               <legend>Dove</legend>
               <label className="ns-field">
-                <span className="ns-field-label">Regione</span>
+                <span className="ns-field-label">Zona</span>
                 <select
                   className="ns-select"
-                  value={filters.region}
+                  value={selectedZone}
                   onChange={(event) =>
-                    patch({ region: event.target.value, provinceCode: "" })
+                    patch({ regions: regionsForTournamentZone(event.target.value), provinceCode: "" })
                   }
                 >
-                  <option value="">Tutta Italia</option>
-                  {regions.map((region) => (
-                    <option key={region} value={region}>
-                      {region}
+                  <option value="">{selectedRegions.length > 0 && !selectedZone ? "Regioni personalizzate" : "Tutta Italia"}</option>
+                  {italianTournamentZones.map((zone) => (
+                    <option key={zone.value} value={zone.value}>
+                      {zone.label}
                     </option>
                   ))}
                 </select>
               </label>
 
-              {filters.region ? (
+              <div className="ns-field">
+                <span className="ns-field-label">Regioni</span>
+                <details className="ns-region-picker">
+                  <summary className="ns-select ns-region-picker__toggle" aria-label={`Regioni: ${selectedRegions.length === 0 ? "Tutta Italia" : selectedRegions.join(", ")}`}>
+                    <span>{selectedRegions.length === 0 ? "Tutta Italia" : selectedRegions.length === 1 ? selectedRegions[0] : `${selectedRegions.length} regioni selezionate`}</span>
+                    <FontAwesomeIcon icon={faChevronDown} aria-hidden="true" />
+                  </summary>
+                  <fieldset className="ns-region-picker__options">
+                    <legend className="ns-visually-hidden">Regioni</legend>
+                    {availableRegions.map((region) => {
+                      const selected = selectedRegions.includes(region);
+                      return (
+                        <label className="ns-region-option" data-selected={selected || undefined} key={region}>
+                          <input
+                            type="checkbox"
+                            value={region}
+                            checked={selected}
+                            onChange={() => onChange((current) => ({
+                              ...current,
+                              regions: normalizeItalianRegions(selected
+                                ? current.regions.filter((value) => value !== region)
+                                : [...current.regions, region]),
+                              provinceCode: "",
+                            }))}
+                          />
+                          <span>{region}</span>
+                        </label>
+                      );
+                    })}
+                    {selectedRegions.length > 0 ? (
+                      <button className="ns-button ns-button--quiet ns-button--full" type="button" onClick={() => patch({ regions: [], provinceCode: "" })}>
+                        Tutta Italia
+                      </button>
+                    ) : null}
+                  </fieldset>
+                </details>
+              </div>
+
+              {selectedRegions.length > 0 ? (
                 <label className="ns-field">
                   <span className="ns-field-label">Provincia</span>
                   <select
@@ -425,7 +472,7 @@ export function FilterPanel({
           ) : (
             <div className="ns-saved-filters__empty">
               <p>Nessuna ricerca salvata.</p>
-              <Link href="/preferenze">Gestisci le ricerche salvate</Link>
+              <Link href="/profilo">Gestisci le ricerche salvate</Link>
             </div>
           )}
         </div>

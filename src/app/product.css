@@ -289,6 +289,75 @@
   padding: 0.55rem 2rem 0.55rem 0.75rem;
 }
 
+.ns-region-picker__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ns-space-2);
+  padding-inline-end: var(--ns-space-3);
+  list-style: none;
+  cursor: pointer;
+}
+
+.ns-region-picker__toggle::-webkit-details-marker {
+  display: none;
+}
+
+.ns-region-picker__toggle:hover {
+  background: var(--ns-surface-blue);
+}
+
+.ns-region-picker__toggle > svg {
+  width: 0.875rem;
+  flex: 0 0 auto;
+  transition: transform var(--ns-motion-fast) var(--ns-ease-out);
+}
+
+.ns-region-picker[open] .ns-region-picker__toggle > svg {
+  transform: rotate(180deg);
+}
+
+.ns-region-picker__options {
+  display: grid;
+  gap: var(--ns-space-1);
+  max-height: 18rem;
+  padding: var(--ns-space-2);
+  margin: var(--ns-space-2) 0 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: var(--ns-court) var(--ns-surface);
+  border: 2px solid var(--ns-ink);
+  border-radius: var(--ns-radius-control);
+  background: var(--ns-surface);
+}
+
+.ns-region-option {
+  display: flex;
+  min-width: 0;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: var(--ns-space-2);
+  padding: var(--ns-space-2);
+  border-radius: var(--ns-radius-card);
+  cursor: pointer;
+}
+
+.ns-region-option:hover {
+  background: var(--ns-surface-blue);
+}
+
+.ns-region-option[data-selected] {
+  background: var(--ns-ball-soft);
+  font-weight: 700;
+}
+
+.ns-region-option input {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: 0 0 auto;
+  accent-color: var(--ns-court-pressed);
+}
+
 .ns-input::placeholder {
   color: var(--ns-text-muted);
   opacity: 0.82;
@@ -3322,30 +3391,51 @@
 .ns-tournament-detail-dialog__actions {
   display: grid;
   min-width: 0;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--ns-space-3);
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: var(--ns-space-2);
 }
 
 .ns-tournament-detail-dialog__actions .ns-button {
   width: 100%;
   min-width: 0;
+  gap: var(--ns-space-1);
+  padding-inline: var(--ns-space-2);
 }
 
 .ns-tournament-detail-dialog__share-actions {
   display: grid;
   min-width: 0;
-  grid-template-columns: 2.75rem minmax(0, 1fr);
-  gap: var(--ns-space-3);
+  grid-template-columns: repeat(2, 2.75rem);
+  gap: var(--ns-space-2);
 }
 
 .ns-tournament-detail-dialog__actions
-  .ns-tournament-detail-dialog__download-action {
+  .ns-tournament-detail-dialog__icon-action {
   width: 2.75rem;
   padding: 0;
 }
 
+.ns-tournament-detail-dialog__save-action {
+  background: var(--ns-surface-blue);
+  color: var(--ns-ink);
+}
+
+.ns-tournament-detail-dialog__save-action:hover {
+  background: color-mix(in srgb, var(--ns-surface-blue) 80%, var(--ns-court));
+}
+
+.ns-tournament-detail-dialog__save-action[aria-pressed="true"] {
+  border-style: double;
+  border-width: 3px;
+}
+
 .ns-tournament-detail-dialog__official-link {
+  background: var(--ns-court-pressed);
   text-decoration: none;
+}
+
+.ns-tournament-detail-dialog__official-link:hover {
+  background: var(--ns-ink);
 }
 
 .ns-tournament-detail-dialog__official-link:focus-visible {
@@ -3385,8 +3475,15 @@
     padding: var(--ns-space-6);
   }
 
+}
+
+@media (max-width: 22.5rem) {
   .ns-tournament-detail-dialog__actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ns-tournament-detail-dialog__share-actions {
+    grid-column: 1 / -1;
   }
 }
 

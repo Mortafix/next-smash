@@ -4,6 +4,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TournamentCalendar } from "@/components/calendar/tournament-calendar";
 import type { TournamentSnapshot } from "@/lib/tournaments/types";
 
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => new URLSearchParams(window.location.search),
+}));
+
+vi.mock("@/components/tournaments/tournament-detail-dialog", () => ({
+  TournamentDetailDialog: ({ tournament, onClose }: { tournament: { title: string } | null; onClose: () => void }) =>
+    tournament ? <div role="dialog" aria-label={tournament.title}><button onClick={onClose}>Chiudi dettaglio</button></div> : null,
+}));
+
 vi.mock("@/components/tournaments/active-filter-chips", () => ({
   ActiveFilterChips: () => null,
 }));
@@ -17,8 +26,15 @@ vi.mock("@/components/tournaments/freshness-banner", () => ({
 }));
 
 vi.mock("@/components/tournaments/tournament-card", () => ({
-  TournamentCard: ({ tournament }: { tournament: { title: string } }) => (
-    <article>{tournament.title}</article>
+  TournamentCard: ({ tournament, detailsHref, onOpenDetails }: {
+    tournament: { id: string; title: string };
+    detailsHref: string;
+    onOpenDetails: (id: string, trigger: HTMLAnchorElement) => void;
+  }) => (
+    <article><a href={detailsHref} onClick={(event) => {
+      event.preventDefault();
+      onOpenDetails(tournament.id, event.currentTarget);
+    }}>{tournament.title}</a></article>
   ),
 }));
 
@@ -69,14 +85,41 @@ function snapshot(
 beforeEach(() => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-09-15T12:00:00"));
+  window.history.replaceState(null, "", "/calendario");
 });
 
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 describe("TournamentCalendar", () => {
+  it("apre i dettagli sul calendario mantenendo mese e giorno selezionati", () => {
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => window.setTimeout(() => callback(0), 0));
+    vi.spyOn(window, "cancelAnimationFrame").mockImplementation((id) => window.clearTimeout(id));
+    const currentSnapshot = snapshot([{ id: "fitp:ottobre", title: "Open di ottobre", startDate: "2026-10-15" }]);
+    const back = vi.spyOn(window.history, "back").mockImplementation(() => undefined);
+    const view = render(<TournamentCalendar snapshot={currentSnapshot} />);
+    fireEvent.click(screen.getByRole("button", { name: /mese successivo/i }));
+    const trigger = screen.getByRole("link", { name: "Open di ottobre" });
+    expect(trigger).toHaveAttribute("href", "/calendario?torneo=fitp%3Aottobre");
+    fireEvent.click(trigger);
+    expect(window.location.pathname).toBe("/calendario");
+    expect(window.location.search).toBe("?torneo=fitp%3Aottobre");
+    view.rerender(<TournamentCalendar snapshot={currentSnapshot} />);
+    expect(screen.getByRole("dialog", { name: "Open di ottobre" })).toBeInTheDocument();
+    expect(screen.getByRole("grid", { name: "ottobre 2026" })).toBeInTheDocument();
+    expect(screen.getByRole("gridcell", { selected: true })).toHaveTextContent("15");
+    fireEvent.click(screen.getByRole("button", { name: "Chiudi dettaglio" }));
+    expect(back).toHaveBeenCalledOnce();
+    window.history.replaceState(null, "", "/calendario");
+    view.rerender(<TournamentCalendar snapshot={currentSnapshot} />);
+    act(() => vi.advanceTimersByTime(20));
+    expect(trigger).toHaveFocus();
+    expect(screen.getByRole("grid", { name: "ottobre 2026" })).toBeInTheDocument();
+  });
+
   it("espone una griglia semantica con un solo giorno nel tab order", () => {
     render(<TournamentCalendar snapshot={snapshot()} />);
 

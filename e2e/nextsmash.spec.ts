@@ -94,7 +94,8 @@ test("filtra l’elenco e salva una ricerca nel browser", async ({ page }) => {
     "pointer",
   );
   await genderGroup.getByText("Maschile", { exact: true }).click();
-  await filters.getByLabel("Regione").selectOption("Lombardia");
+  await filters.locator(".ns-region-picker__toggle").click();
+  await filters.getByRole("checkbox", { name: "Lombardia", exact: true }).check();
   await expect(filters.getByLabel("Provincia")).toBeVisible();
   await expect(filters.locator(".ns-location-control")).toHaveCSS(
     "border-top-width",
@@ -172,7 +173,7 @@ test("filtra l’elenco e salva una ricerca nel browser", async ({ page }) => {
   await expect(toast).toContainText("Ricerca salvata");
 
   await genderGroup.getByText("Tutte", { exact: true }).click();
-  await filters.getByLabel("Regione").selectOption("");
+  await filters.getByRole("checkbox", { name: "Lombardia", exact: true }).uncheck();
   await expect(
     page.getByRole("button", { name: "Salva i filtri attivi" }),
   ).toHaveCount(0);
@@ -184,7 +185,7 @@ test("filtra l’elenco e salva una ricerca nel browser", async ({ page }) => {
   await expect(page.getByRole("button", { name: /Rimuovi filtro: Doppio maschile/ })).toBeVisible();
   await expect(page.getByRole("button", { name: /Rimuovi filtro: Lombardia/ })).toBeVisible();
 
-  await toast.getByRole("link", { name: "Vai alle Preferenze" }).click();
+  await toast.getByRole("link", { name: "Vai al Profilo" }).click();
   const savedSearchCard = page.getByRole("article").filter({
     has: page.getByRole("heading", { name: "Weekend Lombardia" }),
   });
@@ -195,7 +196,7 @@ test("filtra l’elenco e salva una ricerca nel browser", async ({ page }) => {
 
 test("gestisce le ricerche salvate da tastiera anche su mobile", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 740 });
-  await page.goto("/preferenze");
+  await page.goto("/profilo");
   await page.waitForLoadState("networkidle");
   await page.evaluate(() => {
     const filters = {
@@ -237,8 +238,9 @@ test("gestisce le ricerche salvate da tastiera anche su mobile", async ({ page }
   });
 
   await expect(page.getByLabel("2 ricerche salvate")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Filtri di partenza" })).toHaveCount(0);
   await expect(
-    page.getByRole("list", { name: "Riepilogo degli ultimi filtri usati" }),
+    page.getByRole("list", { name: "Filtri della ricerca «Weekend Milano»" }),
   ).toContainText("Lombardia");
 
   const renameButton = page.getByRole("button", {
@@ -300,8 +302,8 @@ test("gestisce le ricerche salvate da tastiera anche su mobile", async ({ page }
   ).toEqual([]);
 });
 
-test("non lascia /preferenze quando lo storage rifiuta la base", async ({ page }) => {
-  await page.goto("/preferenze");
+test("non lascia /profilo quando lo storage rifiuta la ricerca", async ({ page }) => {
+  await page.goto("/profilo");
   await page.waitForLoadState("networkidle");
   await page.evaluate(() => {
     const filters = {
@@ -323,7 +325,14 @@ test("non lascia /preferenze quando lo storage rifiuta la base", async ({ page }
         version: 1,
         defaults: { ...filters, region: "Lazio" },
         lastFilters: filters,
-        savedSearches: [],
+        savedSearches: [
+          {
+            id: "lazio",
+            name: "Tornei Lazio",
+            filters: { ...filters, region: "Lazio" },
+            createdAt: "2026-09-04T08:00:00.000Z",
+          },
+        ],
       }),
     );
     window.dispatchEvent(new Event("nextsmash:preferences-changed"));
@@ -335,20 +344,22 @@ test("non lascia /preferenze quando lo storage rifiuta la base", async ({ page }
     });
   });
 
-  await page.getByRole("button", { name: "Apri questa base" }).click();
+  await page.getByRole("button", { name: "Usa la ricerca «Tornei Lazio»" }).click();
 
-  await expect(page).toHaveURL(/\/preferenze$/);
+  await expect(page).toHaveURL(/\/profilo$/);
   await expect(page.locator(".ns-preferences__feedback[role='alert']")).toContainText(
     "nessuna modifica è stata applicata",
   );
 });
 
-test("propone solo regione, provincia e posizione corrente", async ({ page }) => {
+test("propone zona, regioni, provincia e posizione corrente", async ({ page }) => {
   await page.goto("/tornei");
   const filters = page.locator(".ns-filters");
   await filters.getByRole("button", { name: /Filtri/ }).click();
 
-  await expect(filters.getByLabel("Regione")).toBeVisible();
+  await expect(filters.getByRole("combobox", { name: "Zona", exact: true })).toBeVisible();
+  await filters.locator(".ns-region-picker__toggle").click();
+  await expect(filters.getByRole("group", { name: "Regioni", exact: true })).toBeVisible();
   await expect(filters.getByLabel("Provincia")).toHaveCount(0);
   await expect(
     filters.getByRole("button", { name: "Usa la mia posizione" }),
@@ -359,12 +370,13 @@ test("propone solo regione, provincia e posizione corrente", async ({ page }) =>
 });
 
 test("mostra vicino a me con stato attivo e rimozione compatta", async ({
+  baseURL,
   context,
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 700 });
   await context.grantPermissions(["geolocation"], {
-    origin: "http://localhost:3000",
+    origin: baseURL,
   });
   await context.setGeolocation({ latitude: 45.4642, longitude: 9.19 });
   await page.goto("/tornei");
@@ -645,7 +657,8 @@ test("non crea overflow e usa la navigazione inferiore a 320 px", async ({ page 
   await expect(page.locator(".desktop-nav")).toBeHidden();
   const filters = page.locator(".ns-filters");
   await filters.getByRole("button", { name: /Filtri/ }).click();
-  await filters.getByLabel("Regione").selectOption("Lombardia");
+  await filters.locator(".ns-region-picker__toggle").click();
+  await filters.getByRole("checkbox", { name: "Lombardia", exact: true }).check();
 
   const mobileActionDivider = await page
     .locator(".ns-active-filter-actions")
@@ -701,7 +714,10 @@ test("non crea overflow e usa la navigazione inferiore a 320 px", async ({ page 
   expect(Math.abs(mobileDialogCenter.y)).toBeLessThanOrEqual(1);
   await page.getByRole("dialog").getByRole("button", { name: "Chiudi" }).click();
 
-  const cardVisuals = await page.locator(".ns-tournament-card").first().evaluate((card) => {
+  const cardWithMixedCategory = page.locator(".ns-tournament-card").filter({
+    has: page.getByRole("img", { name: "Doppio misto", exact: true }),
+  }).first();
+  const cardVisuals = await cardWithMixedCategory.evaluate((card) => {
     const rail = card.querySelector<HTMLElement>(".ns-date-rail");
     const placeIcon = card.querySelector<HTMLElement>(
       ".ns-tournament-card__place-icon",
@@ -763,7 +779,7 @@ test("mantiene i titoli di pagina su una riga quando lo spazio è sufficiente", 
     for (const [path, title] of [
       ["/tornei", "Tornei in programma"],
       ["/calendario", "Calendario tornei"],
-      ["/preferenze", "Le mie ricerche"],
+      ["/profilo", "Profilo"],
     ] as const) {
       await page.goto(path);
       await page.evaluate(async () => {
@@ -879,8 +895,8 @@ test("i filtri aperti non creano overflow sui viewport desktop", async ({ page }
   expect(calendarDimensions.scrollWidth).toBe(calendarDimensions.clientWidth);
 });
 
-test("non presenta violazioni WCAG serie nelle tre pagine", async ({ page }) => {
-  for (const path of ["/tornei", "/calendario", "/preferenze"]) {
+for (const path of ["/tornei", "/calendario", "/profilo"]) {
+  test(`non presenta violazioni WCAG serie in ${path}`, async ({ page }) => {
     await page.goto(path);
     await page.waitForLoadState("networkidle");
     const audit = await new AxeBuilder({ page })
@@ -890,5 +906,5 @@ test("non presenta violazioni WCAG serie nelle tre pagine", async ({ page }) => 
       ["serious", "critical"].includes(violation.impact ?? ""),
     );
     expect(importantViolations, `Violazioni in ${path}`).toEqual([]);
-  }
-});
+  });
+}

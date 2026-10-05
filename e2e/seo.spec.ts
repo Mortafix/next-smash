@@ -81,9 +81,10 @@ test("mantiene il wordmark leggibile alle larghezze supportate", async ({ page }
   }
 });
 
-test("non indicizza le preferenze e pubblica i file SEO", async ({ page, request }) => {
+test("non indicizza il profilo, reindirizza le preferenze e pubblica i file SEO", async ({ page, request }) => {
   await page.goto("/preferenze");
-  await expect(page).toHaveTitle("Preferenze | NextSmash");
+  await expect(page).toHaveURL("/profilo");
+  await expect(page).toHaveTitle("Profilo | NextSmash");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
     "content",
     /noindex, follow/i,
@@ -106,6 +107,7 @@ test("non indicizza le preferenze e pubblica i file SEO", async ({ page, request
   expect(sitemapBody).toContain(`${SITE_URL}/tornei`);
   expect(sitemapBody).toContain(`${SITE_URL}/calendario`);
   expect(sitemapBody).not.toContain("/preferenze");
+  expect(sitemapBody).not.toContain("/profilo");
 
   expect(manifestResponse.ok()).toBe(true);
   expect(await manifestResponse.json()).toMatchObject({

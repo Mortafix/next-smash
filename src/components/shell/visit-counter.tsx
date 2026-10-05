@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
-const countedPaths = ["/tornei", "/calendario", "/preferenze"] as const;
+const countedPaths = ["/tornei", "/calendario", "/profilo"] as const;
 const countedThisRuntime = new Set<string>();
 const inFlightThisRuntime = new Map<string, symbol>();
 const visitNumberFormat = new Intl.NumberFormat("it-IT");

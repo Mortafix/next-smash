@@ -29,9 +29,9 @@ siti ufficiali restano la fonte definitiva dei dettagli del torneo.
 
 L'esperienza è pubblica, mobile-first e non richiede un account. Le persone
 consultano un elenco cronologico o un calendario mensile, restringono i risultati
-per circuito, tipologia, livello, territorio e date, possono usare la posizione o
-un comune come origine per stimare la distanza e possono salvare ricerche e filtri
-nel proprio browser.
+per circuito, tipologia, livello, zone d'Italia, regioni, provincia e date, possono
+usare la posizione o un comune come origine per stimare la distanza e possono
+salvare tornei e ricerche nel proprio browser per ritrovarli in Profilo.
 
 ## Capabilities and Constraints
 
@@ -42,8 +42,8 @@ nel proprio browser.
 - La freschezza dei dati deve essere comunicata con trasparenza, soprattutto quando
   lo snapshot potrebbe non essere aggiornato.
 - Ogni torneo deve mantenere un collegamento riconoscibile al dettaglio ufficiale.
-- Il prodotto non richiede account. Preferenze, ricerche salvate e posizione
-  restano nel browser dell'utente.
+- Il prodotto non richiede account. Tornei e ricerche salvati, filtri correnti e
+  posizione restano nel browser dell'utente.
 - Le distanze sono stime basate sulla posizione o sul comune scelto e non devono
   essere presentate come misure esatte.
 - L'esperienza deve restare mobile-first, accessibile e utilizzabile con dati reali,

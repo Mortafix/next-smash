@@ -1,7 +1,7 @@
 import {
   faCalendarDays,
   faList,
-  faSliders,
+  faUser,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
@@ -18,8 +18,8 @@ export function NavigationIcon({ name }: NavigationIconProps) {
       icon={
         name === "calendar"
           ? faCalendarDays
-          : name === "preferences"
-            ? faSliders
+          : name === "profile"
+            ? faUser
             : faList
       }
       aria-hidden="true"

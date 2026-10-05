@@ -6,6 +6,7 @@ import {
   resolveMunicipality,
   searchMunicipalities,
 } from "@/lib/locations/municipalities";
+import { italianRegionsByIstatCode, normalizeItalianRegion } from "@/lib/locations/regions";
 
 describe("dataset comunale ISTAT", () => {
   it("ha copertura e codici univoci", () => {
@@ -35,5 +36,13 @@ describe("dataset comunale ISTAT", () => {
       regionName: "Sardegna",
     });
     expect(resolveMunicipality("Suelli", "SU")).toMatchObject({ name: "Suelli" });
+  });
+
+  it("associa tutte le regioni ai codici ISTAT senza etichette object Object", () => {
+    for (const municipality of data.municipalities) {
+      expect(normalizeItalianRegion(municipality.regionName)).toBe(italianRegionsByIstatCode[municipality.regionCode]);
+    }
+    expect(resolveMunicipality("Aosta", "AO")).toMatchObject({ regionName: "Valle d’Aosta" });
+    expect(resolveMunicipality("Bolzano", "BZ")).toMatchObject({ regionName: "Trentino-Alto Adige" });
   });
 });

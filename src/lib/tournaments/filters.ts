@@ -1,3 +1,20 @@
+import {
+  inferTournamentZone,
+  italianTournamentZones,
+  normalizeItalianRegion,
+  normalizeItalianRegions,
+} from "@/lib/locations/regions";
+
+export {
+  inferTournamentZone,
+  italianRegions,
+  italianTournamentZones,
+  normalizeItalianRegion,
+  normalizeItalianRegions,
+  regionsForTournamentZone,
+  type TournamentZone,
+} from "@/lib/locations/regions";
+
 import type {
   Tournament,
   TournamentGender,
@@ -18,7 +35,7 @@ export type ActiveTournamentFilterKey =
   | "gender"
   | "rankCategory"
   | "tpraLevel"
-  | "region"
+  | "regions"
   | "provinceCode"
   | "dateRange"
   | "origin";
@@ -34,7 +51,7 @@ export type TournamentFilters = {
   gender: TournamentGender | "all";
   rankCategory: "all" | "1" | "2" | "3" | "4";
   tpraLevel: "all" | "entry" | "expert";
-  region: string;
+  regions: string[];
   provinceCode: string;
   dateFrom: string;
   dateTo: string;
@@ -48,7 +65,7 @@ export const defaultTournamentFilters: TournamentFilters = {
   gender: "all",
   rankCategory: "all",
   tpraLevel: "all",
-  region: "",
+  regions: [],
   provinceCode: "",
   dateFrom: "",
   dateTo: "",
@@ -66,6 +83,13 @@ function normalizedSearch(value: string) {
     .replace(/[\u0300-\u036f]/g, "")
     .toLocaleLowerCase("it")
     .trim();
+}
+
+export function normalizeTournamentRegion(
+  tournament: Pick<Tournament, "region" | "provinceCode">,
+): string | null {
+  return normalizeItalianRegion(tournament.region) ??
+    (tournament.provinceCode?.toUpperCase() === "AO" ? "Valle d’Aosta" : null);
 }
 
 function toRadians(value: number) {
@@ -95,6 +119,7 @@ export function filterTournaments(
   filters: TournamentFilters,
 ): TournamentWithDistance[] {
   const query = normalizedSearch(filters.query);
+  const regions = normalizeItalianRegions(filters.regions);
 
   const matches = tournaments.filter((tournament) => {
     if (filters.source !== "all" && tournament.source !== filters.source) {
@@ -116,7 +141,9 @@ export function filterTournaments(
     ) {
       return false;
     }
-    if (filters.region && tournament.region !== filters.region) return false;
+    if (regions.length > 0 && !regions.includes(normalizeTournamentRegion(tournament) ?? "")) {
+      return false;
+    }
     if (
       filters.provinceCode &&
       tournament.provinceCode !== filters.provinceCode
@@ -247,7 +274,11 @@ export function activeTournamentFilters(
       label: `${filters.tpraLevel.toUpperCase()} TPRA`,
     });
   }
-  if (filters.region) parts.push({ key: "region", label: filters.region });
+  const regions = normalizeItalianRegions(filters.regions);
+  if (regions.length > 0) {
+    const zone = italianTournamentZones.find((option) => option.value === inferTournamentZone(regions));
+    parts.push({ key: "regions", label: zone ? `Zona ${zone.label}` : regions.join(", ") });
+  }
   if (filters.provinceCode) {
     parts.push({
       key: "provinceCode",
@@ -292,8 +323,8 @@ export function clearTournamentFilter(
       return { ...filters, rankCategory: "all" };
     case "tpraLevel":
       return { ...filters, tpraLevel: "all" };
-    case "region":
-      return { ...filters, region: "", provinceCode: "" };
+    case "regions":
+      return { ...filters, regions: [], provinceCode: "" };
     case "provinceCode":
       return { ...filters, provinceCode: "" };
     case "dateRange":

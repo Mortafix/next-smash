@@ -5,6 +5,7 @@ import {
   faArrowRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useSearchParams } from "next/navigation";
 import {
   type KeyboardEvent as ReactKeyboardEvent,
   useEffect,
@@ -17,8 +18,13 @@ import { ActiveFilterChips } from "@/components/tournaments/active-filter-chips"
 import { FilterPanel } from "@/components/tournaments/filter-panel";
 import { FreshnessBanner } from "@/components/tournaments/freshness-banner";
 import { TournamentCard } from "@/components/tournaments/tournament-card";
+import { TournamentDetailDialog } from "@/components/tournaments/tournament-detail-dialog";
 import { useTournamentFilters } from "@/components/tournaments/use-tournament-filters";
-import { filterTournaments } from "@/lib/tournaments/filters";
+import {
+  distanceInKilometres,
+  filterTournaments,
+  normalizeTournamentRegion,
+} from "@/lib/tournaments/filters";
 import type { TournamentSnapshot } from "@/lib/tournaments/types";
 
 const monthFormatter = new Intl.DateTimeFormat("it-IT", {
@@ -127,6 +133,12 @@ type TournamentCalendarProps = {
 };
 
 export function TournamentCalendar({ snapshot }: TournamentCalendarProps) {
+  const searchParams = useSearchParams();
+  const selectedTournamentId = searchParams.get("torneo");
+  const tournamentTrigger = useRef<HTMLAnchorElement | null>(null);
+  const locallyOpenedTournament = useRef(false);
+  const tournamentClosePending = useRef(false);
+  const tournamentWasOpen = useRef(false);
   const [today, setToday] = useState(currentRomeDate);
   const [month, setMonth] = useState(
     () => new Date(today.getFullYear(), today.getMonth(), 1, 12),
@@ -147,7 +159,7 @@ export function TournamentCalendar({ snapshot }: TournamentCalendarProps) {
   );
   const regions = useMemo(
     () =>
-      [...new Set(snapshot.tournaments.map((item) => item.region).filter(Boolean))]
+      [...new Set(snapshot.tournaments.map(normalizeTournamentRegion).filter(Boolean))]
         .filter((region): region is string => typeof region === "string")
         .sort((left, right) => left.localeCompare(right, "it")),
     [snapshot.tournaments],
@@ -161,13 +173,61 @@ export function TournamentCalendar({ snapshot }: TournamentCalendarProps) {
         label: tournament.province
           ? `${tournament.province} (${tournament.provinceCode})`
           : tournament.provinceCode,
-        region: tournament.region ?? "",
+        region: normalizeTournamentRegion(tournament) ?? "",
       });
     }
     return [...values.values()].sort((left, right) =>
       left.label.localeCompare(right.label, "it"),
     );
   }, [snapshot.tournaments]);
+
+  const selectedTournament = useMemo(() => {
+    const tournament = snapshot.tournaments.find((item) => item.id === selectedTournamentId);
+    if (!tournament) return null;
+    const distanceKm =
+      filters.origin && tournament.latitude !== null && tournament.longitude !== null
+        ? distanceInKilometres(filters.origin, {
+            latitude: tournament.latitude,
+            longitude: tournament.longitude,
+          })
+        : null;
+    return { ...tournament, distanceKm };
+  }, [filters.origin, selectedTournamentId, snapshot.tournaments]);
+
+  useEffect(() => {
+    tournamentClosePending.current = false;
+    if (selectedTournament) {
+      tournamentWasOpen.current = true;
+      return;
+    }
+    if (selectedTournamentId || !tournamentWasOpen.current) return;
+    tournamentWasOpen.current = false;
+    const frame = window.requestAnimationFrame(() => {
+      tournamentTrigger.current?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [selectedTournament, selectedTournamentId]);
+
+  function openTournamentDetails(tournamentId: string, trigger: HTMLAnchorElement) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("torneo", tournamentId);
+    tournamentTrigger.current = trigger;
+    locallyOpenedTournament.current = true;
+    tournamentClosePending.current = false;
+    window.history.pushState(null, "", `/calendario?${params.toString()}`);
+  }
+
+  function closeTournamentDetails() {
+    if (!selectedTournamentId || tournamentClosePending.current) return;
+    tournamentClosePending.current = true;
+    if (locallyOpenedTournament.current) {
+      window.history.back();
+      return;
+    }
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("torneo");
+    window.history.replaceState(null, "", `/calendario${params.size ? `?${params.toString()}` : ""}`);
+  }
 
   const eventCounts = useMemo(() => {
     const firstDay = isoDate(days[0]);
@@ -490,7 +550,12 @@ export function TournamentCalendar({ snapshot }: TournamentCalendarProps) {
               <ul className="ns-tournament-list ns-calendar-agenda__list">
                 {selectedEvents.map((tournament) => (
                   <li key={tournament.id}>
-                    <TournamentCard tournament={tournament} compact />
+                    <TournamentCard
+                      tournament={tournament}
+                      compact
+                      detailsHref={`/calendario?torneo=${encodeURIComponent(tournament.id)}`}
+                      onOpenDetails={openTournamentDetails}
+                    />
                   </li>
                 ))}
               </ul>
@@ -506,6 +571,7 @@ export function TournamentCalendar({ snapshot }: TournamentCalendarProps) {
           </section>
         </section>
       </div>
+      <TournamentDetailDialog tournament={selectedTournament} onClose={closeTournamentDetails} />
     </div>
   );
 }
